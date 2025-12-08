@@ -1,0 +1,45 @@
+<Window
+    x:Class="YoutubeDownloader.Views.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:suki="https://github.com/kikipoulet/SukiUI"
+    xmlns:yd="https://github.com/arudenkun/YoutubeDownloader"
+    Title="YoutubeDownloader"
+    Width="1366"
+    Height="768"
+    d:DesignHeight="768"
+    d:DesignWidth="1366"
+    x:DataType="yd:MainWindowViewModel"
+    CanResize="False"
+    Icon="/Assets/avalonia-logo.ico"
+    mc:Ignorable="d">
+    <suki:SukiWindow.Hosts>
+        <suki:SukiDialogHost Manager="{Binding DialogManager}" />
+        <suki:SukiToastHost Manager="{Binding ToastManager}" />
+    </suki:SukiWindow.Hosts>
+    <suki:SukiWindow.LogoContent>
+        <Image
+            Width="20"
+            Height="20"
+            VerticalAlignment="Center"
+            Source="/Assets/avalonia-logo.ico" />
+    </suki:SukiWindow.LogoContent>
+    <suki:SukiWindow.RightWindowTitleBarControls>
+        <!--  ReSharper disable Xaml.StyleClassNotFound  -->
+        <!--  <Button  -->
+        <!--  Classes="WindowControlsButton"  -->
+        <!--  Command="{Binding ShowPageCommand}"  -->
+        <!--  CommandParameter="{x:Type ava:AboutPageViewModel}"  -->
+        <!--  Content="{lucide:LucideIconContent Info}" />  -->
+        <Button
+            Classes="WindowControlsButton"
+            Command="{Binding ShowPageCommand}"
+            CommandParameter="{x:Type yd:SettingsPageViewModel}"
+            Content="{LucideIconContent Settings}"
+            IsVisible="{Binding IsMainView}" />
+        <!--  ReSharper restore Xaml.StyleClassNotFound  -->
+    </suki:SukiWindow.RightWindowTitleBarControls>
+    <suki:SukiTransitioningContentControl Content="{Binding ContentViewModel}" />
+</Window>

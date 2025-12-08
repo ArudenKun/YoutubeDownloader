@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8B78F988-0985-499D-9183-ECF95C030EB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeDownloader.Core", "src\YoutubeDownloader.Core\YoutubeDownloader.Core.csproj", "{C4F42247-5B2F-4CBD-A3CB-9B2D3756FD1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeDownloader.Hosting", "src\YoutubeDownloader.Hosting\YoutubeDownloader.Hosting.csproj", "{744620FD-2BF0-44FF-AFBC-2DF4EEF70A22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeDownloader", "src\YoutubeDownloader\YoutubeDownloader.csproj", "{075BE667-3F79-44AB-B7BB-A93FB85F0C55}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{491B2E23-0B81-4C0B-AF52-F872EC52558F}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Packages.props = Directory.Packages.props
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C4F42247-5B2F-4CBD-A3CB-9B2D3756FD1C} = {8B78F988-0985-499D-9183-ECF95C030EB8}
+		{744620FD-2BF0-44FF-AFBC-2DF4EEF70A22} = {8B78F988-0985-499D-9183-ECF95C030EB8}
+		{075BE667-3F79-44AB-B7BB-A93FB85F0C55} = {8B78F988-0985-499D-9183-ECF95C030EB8}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4F42247-5B2F-4CBD-A3CB-9B2D3756FD1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4F42247-5B2F-4CBD-A3CB-9B2D3756FD1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4F42247-5B2F-4CBD-A3CB-9B2D3756FD1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4F42247-5B2F-4CBD-A3CB-9B2D3756FD1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{744620FD-2BF0-44FF-AFBC-2DF4EEF70A22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{744620FD-2BF0-44FF-AFBC-2DF4EEF70A22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{744620FD-2BF0-44FF-AFBC-2DF4EEF70A22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{744620FD-2BF0-44FF-AFBC-2DF4EEF70A22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{075BE667-3F79-44AB-B7BB-A93FB85F0C55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{075BE667-3F79-44AB-B7BB-A93FB85F0C55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{075BE667-3F79-44AB-B7BB-A93FB85F0C55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{075BE667-3F79-44AB-B7BB-A93FB85F0C55}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

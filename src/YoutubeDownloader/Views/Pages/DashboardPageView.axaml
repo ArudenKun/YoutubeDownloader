@@ -1,0 +1,344 @@
+﻿<UserControl
+    x:Class="YoutubeDownloader.Views.Pages.DashboardPageView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:suki="https://github.com/kikipoulet/SukiUI"
+    xmlns:webView="using:WebViewControl"
+    xmlns:yd="https://github.com/arudenkun/YoutubeDownloader"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="yd:DashboardPageViewModel"
+    mc:Ignorable="d">
+    <DockPanel>
+        <!--  Header  -->
+        <StackPanel
+            Background="{DynamicResource MaterialDarkBackgroundBrush}"
+            DockPanel.Dock="Top"
+            Orientation="Vertical">
+            <Grid
+                Margin="12,12,8,12"
+                ColumnDefinitions="*,Auto,Auto">
+                <!--  Query  -->
+                <suki:GlassCard Grid.Column="0">
+                    <TextBox
+                        x:Name="QueryTextBox"
+                        AcceptsReturn="True"
+                        FontSize="16"
+                        MaxLines="4"
+                        ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                        Text="{Binding SearchQuery}"
+                        Theme="{DynamicResource SoloTextBox}"
+                        ToolTip.Tip="Any valid YouTube URL or ID is accepted. Prepend a question mark (?) to perform search by text."
+                        Watermark="URL or search query">
+                        <TextBox.InnerLeftContent>
+                            <LucideIcon
+                                Width="24"
+                                Height="24"
+                                Margin="4,0,8,0"
+                                Kind="Search" />
+                        </TextBox.InnerLeftContent>
+                        <TextBox.InnerRightContent>
+                            <!--  ReSharper disable Xaml.StyleClassNotFound  -->
+                            <Button
+                                x:Name="ProcessQueryButton"
+                                Margin="8,0,0,0"
+                                Padding="4"
+                                Classes="Flat"
+                                Command="{Binding ProcessSearchQueryCommand}"
+                                IsDefault="True"
+                                ToolTip.Tip="Process query (Enter)">
+                                <!--  ReSharper restore Xaml.StyleClassNotFound  -->
+                                <LucideIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="ArrowRight" />
+                            </Button>
+                        </TextBox.InnerRightContent>
+                        <Interaction.Behaviors>
+                            <RoutedEventTriggerBehavior RoutingStrategies="Tunnel">
+                                <InvokeCommandAction />
+                            </RoutedEventTriggerBehavior>
+                        </Interaction.Behaviors>
+                    </TextBox>
+                </suki:GlassCard>
+
+                <!--  Auth button  -->
+                <Button
+                    Grid.Column="1"
+                    Margin="8,0,0,0"
+                    Padding="8"
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource MaterialDarkForegroundBrush}"
+                    IsVisible="{OnPlatform False,
+                                           Windows=True}"
+                    Theme="{DynamicResource MaterialFlatButton}"
+                    ToolTip.Tip="Authentication">
+                    <LucideIcon
+                        Width="24"
+                        Height="24"
+                        Kind="KeyRound" />
+                </Button>
+
+                <!--  Settings button  -->
+                <Button
+                    Grid.Column="2"
+                    Margin="8,0,0,0"
+                    Padding="8"
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource MaterialDarkForegroundBrush}"
+                    Theme="{DynamicResource MaterialFlatButton}"
+                    ToolTip.Tip="Settings">
+                    <LucideIcon
+                        Width="24"
+                        Height="24"
+                        Kind="Settings" />
+                </Button>
+            </Grid>
+
+            <!--  Progress  -->
+            <ProgressBar
+                Height="2"
+                Background="Transparent" />
+        </StackPanel>
+
+        <!--  Body  -->
+        <Panel
+            Background="{DynamicResource MaterialCardBackgroundBrush}"
+            DockPanel.Dock="Bottom">
+            <!--  Placeholder  -->
+            <StackPanel
+                Margin="8,32,8,8"
+                HorizontalAlignment="Center"
+                Orientation="Vertical">
+                <LucideIcon
+                    Width="256"
+                    Height="256"
+                    HorizontalAlignment="Center"
+                    Foreground="{DynamicResource MaterialDividerBrush}"
+                    Kind="Youtube" />
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="18"
+                    FontWeight="Light"
+                    LineSpacing="8"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap">
+                    <Run Text="Copy-paste a" />
+                    <Run
+                        FontWeight="SemiBold"
+                        Text="URL" />
+                    <Run Text="or enter a" />
+                    <Run
+                        FontWeight="SemiBold"
+                        Text="search query" />
+                    <Run Text="to start downloading" />
+                    <LineBreak />
+                    <Run Text="Press" />
+                    <Run
+                        FontWeight="SemiBold"
+                        Text="Shift+Enter" />
+                    <Run Text="to add multiple items" />
+                </TextBlock>
+            </StackPanel>
+
+            <!--  Downloads  -->
+            <DataGrid
+                ColumnWidth="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Visible">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <!--  <MenuItem Command="{Binding RemoveSuccessfulDownloadsCommand}"  -->
+                        <!--  Header="Remove successful downloads" />  -->
+                        <!-- <MenuItem Command="{Binding RemoveInactiveDownloadsCommand}" Header="Remove inactive downloads" /> -->
+                        <!-- <Separator /> -->
+                        <!-- <MenuItem Command="{Binding RestartFailedDownloadsCommand}" Header="Restart failed downloads" /> -->
+                        <!-- <Separator /> -->
+                        <!-- <MenuItem Command="{Binding CancelAllDownloadsCommand}" Header="Cancel all downloads" /> -->
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                    <!--  Thumbnail  -->
+                    <DataGridTemplateColumn>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image
+                                    Width="48"
+                                    Height="48" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!--  File name  -->
+                    <DataGridTemplateColumn
+                        Width="*"
+                        Header="File"
+                        SortMemberPath="FileName">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock
+                                    FontSize="14"
+                                    Foreground="{DynamicResource MaterialBodyBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!--  Status  -->
+                    <DataGridTemplateColumn
+                        MinWidth="100"
+                        Header="Status"
+                        SortMemberPath="Progress.Current.Fraction">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,Auto">
+                                    <!--  Progress  -->
+                                    <ProgressBar
+                                        Grid.Column="0"
+                                        Margin="0,0,6,0" />
+
+                                    <!--  Status  -->
+                                    <TextBlock
+                                        x:Name="StatusTextBlock"
+                                        Grid.Column="1"
+                                        TextTrimming="CharacterEllipsis">
+                                        <TextBlock.Resources>
+                                            <ResourceDictionary>
+                                                <ResourceDictionary.ThemeDictionaries>
+                                                    <ResourceDictionary x:Key="Default">
+                                                        <SolidColorBrush
+                                                            x:Key="SuccessBrush"
+                                                            Color="DarkGreen" />
+                                                        <SolidColorBrush
+                                                            x:Key="CanceledBrush"
+                                                            Color="DarkOrange" />
+                                                        <SolidColorBrush
+                                                            x:Key="FailedBrush"
+                                                            Color="DarkRed" />
+                                                    </ResourceDictionary>
+                                                    <ResourceDictionary x:Key="Dark">
+                                                        <SolidColorBrush
+                                                            x:Key="SuccessBrush"
+                                                            Color="LightGreen" />
+                                                        <SolidColorBrush
+                                                            x:Key="CanceledBrush"
+                                                            Color="Orange" />
+                                                        <SolidColorBrush
+                                                            x:Key="FailedBrush"
+                                                            Color="OrangeRed" />
+                                                    </ResourceDictionary>
+                                                </ResourceDictionary.ThemeDictionaries>
+                                            </ResourceDictionary>
+                                        </TextBlock.Resources>
+                                        <TextBlock.Styles>
+                                            <Style Selector="TextBlock">
+                                                <Style Selector="^.enqueued">
+                                                    <Setter Property="Opacity" Value="0.7" />
+                                                    <Setter Property="Text" Value="Pending..." />
+                                                </Style>
+                                                <Style Selector="^.started">
+                                                    <Setter Property="Text" />
+                                                </Style>
+                                                <Style Selector="^.completed">
+                                                    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                                                    <Setter Property="Text" Value="Done" />
+                                                </Style>
+                                                <Style Selector="^.canceled">
+                                                    <Setter Property="Foreground" Value="{DynamicResource CanceledBrush}" />
+                                                    <Setter Property="Text" Value="Canceled" />
+                                                </Style>
+                                                <Style Selector="^.failed">
+                                                    <Setter Property="Foreground" Value="{DynamicResource FailedBrush}" />
+                                                    <Setter Property="Text" Value="Failed" />
+                                                    <Setter Property="ToolTip.Tip">
+                                                        <Template>
+                                                            <TextBlock>
+                                                                <Run
+                                                                    FontWeight="SemiBold"
+                                                                    Text="Note: Click to copy this error message" />
+                                                                <LineBreak />
+                                                                <LineBreak />
+                                                                <Run />
+                                                            </TextBlock>
+                                                        </Template>
+                                                    </Setter>
+                                                    <Setter Property="Cursor" Value="Hand" />
+                                                </Style>
+                                            </Style>
+                                        </TextBlock.Styles>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!--  Buttons  -->
+                    <DataGridTemplateColumn MinWidth="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                                    <!--  Show file  -->
+                                    <Button
+                                        Padding="4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding $self.IsEffectivelyEnabled}"
+                                        Theme="{DynamicResource MaterialFlatButton}"
+                                        ToolTip.Tip="Show file">
+                                        <LucideIcon
+                                            Width="24"
+                                            Height="24"
+                                            Kind="FileOutput" />
+                                    </Button>
+
+                                    <!--  Open file  -->
+                                    <Button
+                                        Padding="4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding $self.IsEffectivelyEnabled}"
+                                        Theme="{DynamicResource MaterialFlatButton}"
+                                        ToolTip.Tip="Play">
+                                        <LucideIcon
+                                            Width="24"
+                                            Height="24"
+                                            Kind="CirclePlay" />
+                                    </Button>
+
+                                    <!--  Cancel download  -->
+                                    <Button
+                                        Padding="4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding $self.IsEffectivelyEnabled}"
+                                        Theme="{DynamicResource MaterialFlatButton}"
+                                        ToolTip.Tip="Cancel download">
+                                        <LucideIcon
+                                            Width="24"
+                                            Height="24"
+                                            Kind="CircleX" />
+                                    </Button>
+
+                                    <!--  Restart download  -->
+                                    <Button
+                                        Padding="4"
+                                        VerticalAlignment="Center"
+                                        CommandParameter="{Binding}"
+                                        Theme="{DynamicResource MaterialFlatButton}"
+                                        ToolTip.Tip="Restart download">
+                                        <LucideIcon
+                                            Width="24"
+                                            Height="24"
+                                            Kind="RotateCcw" />
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Panel>
+    </DockPanel>
+</UserControl>
