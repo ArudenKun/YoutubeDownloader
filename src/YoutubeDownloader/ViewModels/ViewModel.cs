@@ -30,6 +30,9 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
     public IDialogService DialogService =>
         LazyServiceProvider.LazyGetRequiredService<IDialogService>();
 
+    public ISettingsService SettingsService =>
+        LazyServiceProvider.LazyGetRequiredService<ISettingsService>();
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     public partial bool IsBusy { get; set; }

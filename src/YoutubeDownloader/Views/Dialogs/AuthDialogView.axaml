@@ -1,0 +1,89 @@
+﻿<UserControl
+    x:Class="YoutubeDownloader.Views.Dialogs.AuthDialogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wv2="clr-namespace:Avalonia.Controls;assembly=Avalonia.WebView2"
+    xmlns:yd="https://github.com/arudenkun/YoutubeDownloader"
+    Height="600"
+    MinWidth="800"
+    x:DataType="yd:AuthDialogViewModel"
+    mc:Ignorable="d">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!--  Title  -->
+        <TextBlock
+            Grid.Row="0"
+            Margin="16"
+            FontSize="19"
+            FontWeight="Light"
+            Text="Authentication" />
+
+        <!--  Content  -->
+        <Border
+            Grid.Row="1"
+            BorderThickness="0,1">
+            <Panel>
+                <!--  Current auth status  -->
+                <StackPanel
+                    Margin="16"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsAuthenticated}"
+                    Orientation="Vertical">
+                    <LucideIcon
+                        Width="196"
+                        Height="196"
+                        HorizontalAlignment="Center"
+                        Kind="UserRoundCheck" />
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap">
+                        <Run
+                            FontWeight="Light"
+                            Text="You are currently authenticated" />
+                    </TextBlock>
+
+                    <!--  Log out  -->
+                    <!--  ReSharper disable once Xaml.StyleClassNotFound  -->
+                    <Button
+                        x:Name="LogOutButton"
+                        Margin="16"
+                        HorizontalAlignment="Center"
+                        Classes="Flat"
+                        Content="Log out"
+                        FontSize="18" />
+                </StackPanel>
+
+                <!--  Placeholder  -->
+                <TextBlock
+                    Margin="16"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    IsVisible="{Binding !IsAuthenticated}"
+                    Text="Loading..." />
+
+                <!--  Browser  -->
+                <wv2:WebView2
+                    x:Name="WebBrowser"
+                    CreationProperties="{Binding CreationProperties}"
+                    IsVisible="{Binding !IsAuthenticated}"
+                    Source="{Binding Url}" />
+            </Panel>
+        </Border>
+
+        <!--  Close button  -->
+        <Button
+            Grid.Row="2"
+            Margin="16"
+            HorizontalAlignment="Stretch"
+            Command="{Binding CloseDialogCommand}"
+            Content="CLOSE"
+            IsCancel="True"
+            IsDefault="True" />
+    </Grid>
+</UserControl>

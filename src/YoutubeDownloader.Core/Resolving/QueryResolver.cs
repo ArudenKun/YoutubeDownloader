@@ -14,8 +14,11 @@ public class QueryResolver : IDisposable
     private readonly bool _isAuthenticated;
 
     public QueryResolver(IReadOnlyList<Cookie>? initialCookies = null)
+        : this(Http.Client, initialCookies) { }
+
+    public QueryResolver(HttpClient httpClient, IReadOnlyList<Cookie>? initialCookies = null)
     {
-        _youtube = new YoutubeClient(Http.Client, initialCookies ?? []);
+        _youtube = new YoutubeClient(httpClient, initialCookies ?? []);
         _isAuthenticated = initialCookies?.Any() == true;
     }
 

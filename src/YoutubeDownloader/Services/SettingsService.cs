@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Net;
+using System.Text.Json.Serialization;
 using AutoInterfaceAttributes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Humanizer;
@@ -24,6 +25,9 @@ public sealed partial class SettingsService : JsonFileBase, ISettingsService, IS
 
     [ObservableProperty]
     public partial bool AutoUpdate { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<Cookie> LastAuthCookies { get; set; } = [];
 
     [ObservableProperty]
     public partial LoggingOptions Logging { get; set; } = new();

@@ -13,8 +13,11 @@ public class VideoDownloader : IDisposable
     private readonly YoutubeClient _youtube;
 
     public VideoDownloader(IReadOnlyList<Cookie>? initialCookies = null)
+        : this(Http.Client, initialCookies) { }
+
+    public VideoDownloader(HttpClient httpClient, IReadOnlyList<Cookie>? initialCookies = null)
     {
-        _youtube = new YoutubeClient(Http.Client, initialCookies ?? []);
+        _youtube = new YoutubeClient(httpClient, initialCookies ?? []);
     }
 
     public async Task<IReadOnlyList<VideoDownloadOption>> GetDownloadOptionsAsync(

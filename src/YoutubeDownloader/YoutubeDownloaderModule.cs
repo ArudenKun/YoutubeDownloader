@@ -2,7 +2,6 @@
 using SukiUI.Dialogs;
 using SukiUI.Toasts;
 using Volo.Abp;
-using Volo.Abp.Caching;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 using YoutubeDownloader.Hosting;
@@ -12,11 +11,7 @@ using YoutubeExplode;
 
 namespace YoutubeDownloader;
 
-[DependsOn(
-    typeof(YoutubeDownloaderHostingModule),
-    typeof(AbpEventBusModule),
-    typeof(AbpCachingModule)
-)]
+[DependsOn(typeof(YoutubeDownloaderHostingModule), typeof(AbpEventBusModule))]
 public sealed class YoutubeDownloaderModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)

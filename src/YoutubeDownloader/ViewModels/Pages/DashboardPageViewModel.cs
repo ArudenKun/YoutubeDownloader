@@ -2,11 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lucide.Avalonia;
-using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
-using WebViewControl;
-using YoutubeDownloader.Core.Utilities;
 using YoutubeExplode;
 using YoutubeExplode.Common;
 
@@ -15,8 +11,6 @@ namespace YoutubeDownloader.ViewModels.Pages;
 public sealed partial class DashboardPageViewModel : PageViewModel, ITransientDependency
 {
     private readonly YoutubeClient _youtubeClient;
-
-    private WebView _webView = null!;
 
     public DashboardPageViewModel(YoutubeClient youtubeClient)
     {
@@ -50,43 +44,5 @@ public sealed partial class DashboardPageViewModel : PageViewModel, ITransientDe
         }
 
         foreach (var videoSearchResult in searchResult) { }
-
-        _webView.LoadUrl("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
-    }
-
-    [RelayCommand]
-    private void InitializeWebView(WebView webView)
-    {
-        _webView.BeforeResourceLoad += WebViewOnBeforeResourceLoad;
-        _webView = webView;
-    }
-
-    private void WebViewOnBeforeResourceLoad(ResourceHandler handler)
-    {
-        if (
-            handler.Url.StartsWith("https://www.youtube.com/embed")
-            || handler.Url.StartsWith("https://www.youtube-nocookie.com/embed")
-        )
-        {
-            Logger.LogInformation("BeforeResourceLoad {Method} {Url}", handler.Method, handler.Url);
-            var request = new HttpRequestMessage(HttpMethod.Get, handler.Url);
-            request.Headers.Referrer = new Uri("https://youtube.com/");
-            var response = AsyncHelper.RunSync(async () => await Http.Client.SendAsync(request));
-            var data = AsyncHelper.RunSync(async () =>
-                await response.Content.ReadAsByteArrayAsync()
-            );
-            var stream = new MemoryStream(data);
-            handler.RespondWith(stream);
-        }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _webView.BeforeResourceLoad -= WebViewOnBeforeResourceLoad;
-        }
-
-        base.Dispose(disposing);
     }
 }

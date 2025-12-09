@@ -8,8 +8,6 @@ using Microsoft.Extensions.Logging;
 using R3;
 using R3.ObservableEvents;
 using Volo.Abp.DependencyInjection;
-using WebViewControl;
-using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Services;
 using YoutubeDownloader.Utilities;
 using YoutubeDownloader.ViewModels;
@@ -43,9 +41,6 @@ public sealed class App : Application, IDisposable, ISingletonDependency
     {
         AvaloniaXamlLoader.Load(this);
         DataTemplates.Add(_viewLocator);
-
-        WebView.Settings.OsrEnabled = false;
-        WebView.Settings.CachePath = AppHelper.DataDir.CombinePath("webview");
 
         _subscriptions = Disposable.Combine(
             AppDomain

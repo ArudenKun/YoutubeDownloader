@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -37,9 +37,8 @@
     </PackageReference>
     <PackageReference Include="SukiUI.Dock" Version="6.0.3" />
     <PackageReference Include="Velopack" Version="0.0.1298" />
-    <PackageReference Include="Volo.Abp.Caching" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.EventBus" Version="10.0.1" />
-    <PackageReference Include="WebViewControl-Avalonia" Version="3.120.10" />
+    <PackageReference Include="WebView2.Avalonia" Version="1.0.3240.44-preview.250526.1" />
     <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9" />
   </ItemGroup>
 
