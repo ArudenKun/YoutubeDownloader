@@ -13,6 +13,7 @@ using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Hosting;
 using YoutubeDownloader.Options;
 using YoutubeDownloader.Utilities;
+using Application = Avalonia.Application;
 
 namespace YoutubeDownloader;
 

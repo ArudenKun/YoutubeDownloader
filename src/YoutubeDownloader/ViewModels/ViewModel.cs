@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using YoutubeDownloader.Services;
+using YoutubeDownloader.Utilities;
 
 namespace YoutubeDownloader.ViewModels;
 
@@ -97,25 +98,28 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
     /// <inheritdoc cref="Dispose"/>>
     protected virtual void Dispose(bool disposing)
     {
-        if (_isDisposed)
+        DispatchHelper.Invoke(() =>
         {
-            return;
-        }
-
-        if (!disposing)
-        {
-            return;
-        }
-
-        if (_onDisposeActions is { Count: > 0 })
-        {
-            foreach (var disposeAction in _onDisposeActions.Distinct())
+            if (_isDisposed)
             {
-                disposeAction?.Invoke();
+                return;
             }
-        }
 
-        _isDisposed = true;
+            if (!disposing)
+            {
+                return;
+            }
+
+            if (_onDisposeActions is { Count: > 0 })
+            {
+                foreach (var disposeAction in _onDisposeActions.Distinct())
+                {
+                    disposeAction?.Invoke();
+                }
+            }
+
+            _isDisposed = true;
+        });
     }
 
     /// <inheritdoc />>

@@ -1,51 +1,61 @@
-﻿using Avalonia.Platform.Storage;
-using Microsoft.Extensions.Logging;
+﻿using Avalonia.Interactivity;
 using Microsoft.Web.WebView2.Core;
 using YoutubeDownloader.ViewModels.Dialogs;
+using ZLinq;
 
 namespace YoutubeDownloader.Views.Dialogs;
 
-public partial class AuthDialogView : UserControl<AuthDialogViewModel>, IWebView2StorageService
+public partial class AuthDialogView : UserControl<AuthDialogViewModel>
 {
     private const string HomePageUrl = "https://www.youtube.com";
 
     private static readonly string LoginPageUrl =
         $"https://accounts.google.com/ServiceLogin?continue={Uri.EscapeDataString(HomePageUrl)}";
 
+    private static readonly Uri LoginPageUri = new(
+        $"https://accounts.google.com/ServiceLogin?continue={Uri.EscapeDataString(HomePageUrl)}"
+    );
+
     public AuthDialogView()
     {
         InitializeComponent();
 
-        WebBrowser.CoreWebView2InitializationCompleted +=
-            WebBrowserOnCoreWebView2InitializationCompleted;
-        WebBrowser.NavigationStarting += WebBrowserOnNavigationStarting;
-
-        WebBrowser.StorageService = this;
+        WebView.Loaded += WebViewOnLoaded;
+        WebView.CoreWebView2InitializationCompleted += WebViewOnCoreWebView2InitializationCompleted;
+        WebView.NavigationStarting += WebViewOnNavigationStarting;
     }
 
-    public required ILogger<AuthDialogView> Logger { get; init; }
+    private void NavigateToLoginPage() => WebView.Source = LoginPageUri;
 
-    private void WebBrowserOnCoreWebView2InitializationCompleted(
+    private void WebViewOnLoaded(object? sender, RoutedEventArgs e) => NavigateToLoginPage();
+
+    private void WebViewOnCoreWebView2InitializationCompleted(
         object? sender,
-        CoreWebView2InitializationCompletedEventArgs e
+        CoreWebView2InitializationCompletedEventArgs args
     )
     {
-        WebBrowser.CoreWebView2?.Settings.AreDefaultContextMenusEnabled = false;
-        WebBrowser.CoreWebView2?.Settings.AreDevToolsEnabled = false;
-        WebBrowser.CoreWebView2?.Settings.IsGeneralAutofillEnabled = false;
-        WebBrowser.CoreWebView2?.Settings.IsPasswordAutosaveEnabled = false;
-        WebBrowser.CoreWebView2?.Settings.IsStatusBarEnabled = false;
-        WebBrowser.CoreWebView2?.Settings.IsSwipeNavigationEnabled = false;
+        if (!args.IsSuccess)
+            return;
 
-        DataContext.NavigateToLoginPageCommand.Execute(null);
+        var coreWebView2 = WebView?.CoreWebView2;
+        if (coreWebView2 is null)
+            return;
+
+        coreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+        coreWebView2.Settings.AreDevToolsEnabled = false;
+        coreWebView2.Settings.IsGeneralAutofillEnabled = false;
+        coreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+        coreWebView2.Settings.IsStatusBarEnabled = false;
+        coreWebView2.Settings.IsSwipeNavigationEnabled = false;
     }
 
-    private async void WebBrowserOnNavigationStarting(
+    private async void WebViewOnNavigationStarting(
         object? sender,
         CoreWebView2NavigationStartingEventArgs args
     )
     {
-        if (WebBrowser.CoreWebView2 is not { } coreWebView2)
+        var coreWebView2 = WebView?.CoreWebView2;
+        if (coreWebView2 is null)
             return;
 
         // Reset existing browser cookies if the user is attempting to log in (again)
@@ -56,33 +66,10 @@ public partial class AuthDialogView : UserControl<AuthDialogViewModel>, IWebView
         if (args.Uri.StartsWith(HomePageUrl, StringComparison.OrdinalIgnoreCase))
         {
             var cookies = await coreWebView2.CookieManager.GetCookiesAsync(args.Uri);
-            DataContext.Cookies = cookies.Select(c => c.ToSystemNetCookie()).ToArray();
-        }
-    }
-
-    public IEnumerable<
-        KeyValuePair<(WebView2StorageItemType type, string key), WebView2StorageItemValue>
-    >? GetStorages(string requestUri)
-    {
-        var now = DateTime.Now;
-
-        var dict = new Dictionary<
-            (WebView2StorageItemType type, string key),
-            WebView2StorageItemValue
-        >
-        {
-            { (WebView2StorageItemType.LocalStorage, "global_test"), 2 },
-            { (WebView2StorageItemType.SessionStorage, "global_test_s"), 7.5 },
-            { (WebView2StorageItemType.LocalStorage, "global_test_now"), now },
-            {
-                (WebView2StorageItemType.AllStorage, "global_test_now_str"),
-                now.ToString("yyyy-MM-dd HH:mm:ss.fffffff")
-            },
-        };
-
-        foreach (var it in dict)
-        {
-            yield return it;
+            DataContext.Cookies = cookies
+                .AsValueEnumerable()
+                .Select(c => c.ToSystemNetCookie())
+                .ToArray();
         }
     }
 }

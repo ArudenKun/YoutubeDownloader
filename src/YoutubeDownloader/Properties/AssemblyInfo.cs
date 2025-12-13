@@ -30,6 +30,6 @@ using R3.ObservableEvents;
 )]
 [assembly: XmlnsDefinition(
     "https://github.com/arudenkun/YoutubeDownloader",
-    "YoutubeDownloader.Controls.Media"
+    "YoutubeDownloader.Controls"
 )]
 [assembly: XmlnsPrefix("https://github.com/arudenkun/YoutubeDownloader", "yd")]

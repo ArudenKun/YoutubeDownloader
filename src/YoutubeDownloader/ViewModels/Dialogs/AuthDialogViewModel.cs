@@ -4,27 +4,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SukiUI.Dialogs;
 using Volo.Abp.DependencyInjection;
-using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Utilities;
 
 namespace YoutubeDownloader.ViewModels.Dialogs;
 
 public sealed partial class AuthDialogViewModel : DialogViewModel, ITransientDependency
 {
-    private const string HomePageUrl = "https://www.youtube.com";
-
-    private static readonly string LoginPageUrl =
-        $"https://accounts.google.com/ServiceLogin?continue={Uri.EscapeDataString(HomePageUrl)}";
-
     public CoreWebView2CreationProperties CreationProperties { get; } =
-        new()
-        {
-            UserDataFolder = AppHelper.DataDir.CombinePath("webview"),
-            EnabledDevTools = false,
-        };
-
-    [ObservableProperty]
-    public partial string Url { get; set; } = HomePageUrl;
+        new() { UserDataFolder = AppHelper.DataDir };
 
     public IReadOnlyList<Cookie> Cookies
     {
@@ -50,13 +37,6 @@ public sealed partial class AuthDialogViewModel : DialogViewModel, ITransientDep
     private void Logout()
     {
         Cookies = [];
-        Url = LoginPageUrl;
-    }
-
-    [RelayCommand]
-    private void NavigateToLoginPage()
-    {
-        Url = LoginPageUrl;
     }
 
     public void SetDialog(ISukiDialog dialog)

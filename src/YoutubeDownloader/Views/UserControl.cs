@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Volo.Abp.DependencyInjection;
-using ViewModel = YoutubeDownloader.ViewModels.ViewModel;
+using YoutubeDownloader.ViewModels;
 
 namespace YoutubeDownloader.Views;
 

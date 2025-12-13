@@ -69,10 +69,9 @@
 
                 <!--  Browser  -->
                 <wv2:WebView2
-                    x:Name="WebBrowser"
+                    x:Name="WebView"
                     CreationProperties="{Binding CreationProperties}"
-                    IsVisible="{Binding !IsAuthenticated}"
-                    Source="{Binding Url}" />
+                    IsVisible="{Binding !IsAuthenticated}" />
             </Panel>
         </Border>
 

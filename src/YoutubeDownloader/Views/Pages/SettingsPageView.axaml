@@ -9,10 +9,16 @@
     d:DesignWidth="800"
     x:DataType="yd:SettingsPageViewModel"
     mc:Ignorable="d">
-    <StackPanel>
-        <TextBox Text="Test" />
+    <Grid RowDefinitions="Auto, Auto, *">
+        <TextBox
+            Grid.Row="0"
+            Text="{Binding Search}" />
         <Button
-            Command="{Binding OpenAuthDialogCommand}"
-            Content="Open Auth Dialog" />
-    </StackPanel>
+            Grid.Row="1"
+            Command="{Binding ProcessSearchCommand}"
+            Content="Play" />
+        <ContentControl
+            Grid.Row="2"
+            Content="{Binding VideoPlayerViewModel}" />
+    </Grid>
 </UserControl>

@@ -12,8 +12,10 @@
     d:DesignHeight="768"
     d:DesignWidth="1366"
     x:DataType="yd:MainWindowViewModel"
-    CanResize="False"
+    CanMaximize="False"
+    CanResize="True"
     Icon="/Assets/avalonia-logo.ico"
+    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <suki:SukiWindow.Hosts>
         <suki:SukiDialogHost Manager="{Binding DialogManager}" />
