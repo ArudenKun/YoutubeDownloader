@@ -25,4 +25,9 @@ public abstract partial class DialogViewModel : ViewModel, IDialogViewModel
     {
         Dialog.Dismiss();
     }
+
+    public void SetDialog(ISukiDialog dialog)
+    {
+        Dialog = dialog;
+    }
 }

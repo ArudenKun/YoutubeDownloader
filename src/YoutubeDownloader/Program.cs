@@ -13,7 +13,6 @@ using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Hosting;
 using YoutubeDownloader.Options;
 using YoutubeDownloader.Utilities;
-using Application = Avalonia.Application;
 
 namespace YoutubeDownloader;
 
@@ -42,12 +41,18 @@ public static class Program
 
         try
         {
-            Logger.Information("Starting Avalonia host.");
+            Logger.Information("Starting Avalonia Host");
             VelopackApp.Build().SetArgs(args).SetLogger(VelopackLogger.Instance).Run();
-            var builder = Host.CreateApplicationBuilder(args);
-            await ConfigureAsync(builder);
-            var app = builder.Build();
-            await app.InitializeApplicationAsync();
+            var app = Host.CreateDefaultBuilder(args)
+                .ConfigureLogging()
+                .ConfigureConfiguration()
+                .ConfigureAvalonia()
+                .UseAutofac()
+                .UseApplication<YoutubeDownloaderModule>()
+                .UseConsoleLifetime()
+                .Build();
+
+            await app.InitializeAsync();
             await app.RunAsync();
             return 0;
         }
@@ -62,54 +67,86 @@ public static class Program
         }
     }
 
-    private static async Task ConfigureAsync(HostApplicationBuilder builder)
-    {
-        builder.Configuration.AddConfiguration(
-            ConfigurationHelper.BuildConfiguration(
-                new AbpConfigurationBuilderOptions { BasePath = AppHelper.DataDir }
+    /// <summary>
+    /// Configure the loggers
+    /// </summary>
+    /// <param name="hostBuilder">IHostBuilder</param>
+    /// <returns>IHostBuilder</returns>
+    private static IHostBuilder ConfigureLogging(this IHostBuilder hostBuilder) =>
+        hostBuilder
+            .ConfigureServices(services =>
+                services.AddSingleton(sp => new LoggingLevelSwitch(
+                    sp.GetRequiredService<IOptionsSnapshot<LoggingOptions>>().Value.LogEventLevel
+                ))
             )
-        );
-        builder.Configuration.AddAppSettingsSecretsJson();
-        builder.AddAvaloniaHosting<App>(appBuilder =>
+            .UseSerilog(
+                (_, sp, loggingConfiguration) =>
+                {
+                    loggingConfiguration
+                        .MinimumLevel.ControlledBy(sp.GetRequiredService<LoggingLevelSwitch>())
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                        .MinimumLevel.Override(
+                            "Microsoft.EntityFrameworkCore",
+                            LogEventLevel.Warning
+                        )
+                        .Enrich.FromLogContext()
+                        .Enrich.WithDemystifiedStackTraces()
+                        .WriteTo.Async(c =>
+                            c.File(
+                                AppHelper.LogsDir.CombinePath("log.txt"),
+                                outputTemplate: LoggingOptions.Template,
+                                fileSizeLimitBytes: sp.GetRequiredService<
+                                    IOptionsSnapshot<LoggingOptions>
+                                >().Value.Size == 0
+                                    ? null
+                                    : (long)
+                                        sp.GetRequiredService<IOptionsSnapshot<LoggingOptions>>()
+                                            .Value.Size.Megabytes()
+                                            .Bytes,
+                                retainedFileTimeLimit: 30.Days(),
+                                rollingInterval: RollingInterval.Day,
+                                rollOnFileSizeLimit: true,
+                                shared: true
+                            )
+                        )
+                        .WriteTo.Async(c => c.Console(outputTemplate: LoggingOptions.Template));
+                }
+            );
+
+    /// <summary>
+    /// Configure the configuration
+    /// </summary>
+    /// <param name="hostBuilder"></param>
+    /// <returns></returns>
+    private static IHostBuilder ConfigureConfiguration(this IHostBuilder hostBuilder) =>
+        hostBuilder
+            .ConfigureHostConfiguration(configHost =>
+                configHost
+                    .AddConfiguration(
+                        ConfigurationHelper.BuildConfiguration(
+                            new AbpConfigurationBuilderOptions { BasePath = AppHelper.DataDir }
+                        )
+                    )
+                    .AddAppSettingsSecretsJson()
+            )
+            .ConfigureAppConfiguration(
+                (_, configApp) =>
+                    configApp
+                        .AddConfiguration(
+                            ConfigurationHelper.BuildConfiguration(
+                                new AbpConfigurationBuilderOptions { BasePath = AppHelper.DataDir }
+                            )
+                        )
+                        .AddAppSettingsSecretsJson()
+            );
+
+    private static IHostBuilder ConfigureAvalonia(this IHostBuilder hostBuilder) =>
+        hostBuilder.UseAvaloniaHosting<App>(appBuilder =>
             appBuilder
                 .UsePlatformDetect()
                 .UseR3(exception => Logger.Fatal(exception, "R3 Unhandled Exception"))
                 .LogToTrace()
         );
-        builder.AddAutofac();
-        await builder.AddApplicationAsync<YoutubeDownloaderModule>();
-        builder.Services.AddSingleton(sp => new LoggingLevelSwitch(
-            sp.GetRequiredService<IOptions<LoggingOptions>>().Value.LogEventLevel
-        ));
-        builder.Services.AddSerilog(
-            (sp, loggingConfiguration) =>
-                loggingConfiguration
-                    .MinimumLevel.ControlledBy(sp.GetRequiredService<LoggingLevelSwitch>())
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-                    .Enrich.FromLogContext()
-                    .Enrich.WithDemystifiedStackTraces()
-                    .WriteTo.Async(c =>
-                        c.File(
-                            AppHelper.LogsDir.CombinePath("log.txt"),
-                            outputTemplate: LoggingOptions.Template,
-                            fileSizeLimitBytes: sp.GetRequiredService<
-                                IOptions<LoggingOptions>
-                            >().Value.Size == 0
-                                ? null
-                                : (long)
-                                    sp.GetRequiredService<IOptions<LoggingOptions>>()
-                                        .Value.Size.Megabytes()
-                                        .Bytes,
-                            retainedFileTimeLimit: 30.Days(),
-                            rollingInterval: RollingInterval.Day,
-                            rollOnFileSizeLimit: true,
-                            shared: true
-                        )
-                    )
-                    .WriteTo.Async(c => c.Console(outputTemplate: LoggingOptions.Template))
-        );
-    }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     [UsedImplicitly]

@@ -6,5 +6,6 @@
     RequestedThemeVariant="Default">
     <Application.Styles>
         <suki:SukiTheme ThemeColor="Blue" />
+        <StyleInclude Source="/Styles/YoutubeDownloaderStyle.axaml" />
     </Application.Styles>
 </Application>

@@ -17,24 +17,17 @@ public sealed partial class SettingsPageViewModel : PageViewModel, ISingletonDep
     {
         _dialogManager = dialogManager;
         _serviceProvider = serviceProvider;
-
-        VideoPlayerViewModel = _serviceProvider.GetRequiredService<VideoPlayerViewModel>();
     }
 
     public override int Index => int.MaxValue;
     public override string DisplayName => "Settings";
     public override LucideIconKind IconKind => LucideIconKind.Settings;
 
-    public VideoPlayerViewModel VideoPlayerViewModel { get; }
-
     [ObservableProperty]
     public partial string Search { get; set; } = string.Empty;
 
     [RelayCommand]
-    private void ProcessSearch()
-    {
-        VideoPlayerViewModel.Source = Search;
-    }
+    private void ProcessSearch() { }
 
     [RelayCommand]
     private void OpenAuthDialog()

@@ -2,7 +2,7 @@
 using SukiUI.Controls;
 using Volo.Abp.DependencyInjection;
 using YoutubeDownloader.Utilities;
-using ViewModel = YoutubeDownloader.ViewModels.ViewModel;
+using YoutubeDownloader.ViewModels;
 
 namespace YoutubeDownloader.Views;
 

@@ -2,7 +2,7 @@ using YoutubeDownloader.ViewModels;
 
 namespace YoutubeDownloader.Views;
 
-public partial class MainWindow : SukiWindow<MainWindowViewModel>
+public sealed partial class MainWindow : SukiWindow<MainWindowViewModel>
 {
     public MainWindow()
     {

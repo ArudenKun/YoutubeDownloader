@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using AutoInterfaceAttributes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -32,7 +34,10 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
         LazyServiceProvider.LazyGetRequiredService<IDialogService>();
 
     public ISettingsService SettingsService =>
-        LazyServiceProvider.LazyGetRequiredService<ISettingsService>();
+        LazyServiceProvider.GetRequiredService<ISettingsService>();
+
+    public IStorageProvider StorageProvider =>
+        LazyServiceProvider.LazyGetRequiredService<IStorageProvider>();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -101,14 +106,10 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
         DispatchHelper.Invoke(() =>
         {
             if (_isDisposed)
-            {
                 return;
-            }
 
             if (!disposing)
-            {
                 return;
-            }
 
             if (_onDisposeActions is { Count: > 0 })
             {

@@ -37,6 +37,16 @@ public sealed class App : Application, IDisposable, ISingletonDependency
         _loggerFactory = loggerFactory;
     }
 
+    // ReSharper disable once ArrangeModifiersOrder
+    public static new App Current =>
+        (App?)Application.Current
+        ?? throw new ArgumentNullException(
+            nameof(Application.Current),
+            "Application is not yet initialized"
+        );
+
+    public static TopLevel TopLevel { get; private set; } = null!;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -72,6 +82,12 @@ public sealed class App : Application, IDisposable, ISingletonDependency
             DisableAvaloniaDataAnnotationValidation();
             var window = _viewLocator.CreateView(_mainWindowViewModel) as Window;
             desktop.MainWindow = window;
+            TopLevel =
+                window
+                ?? throw new ArgumentNullException(
+                    nameof(Application.Current),
+                    "Application is not yet initialized"
+                );
         }
 
         base.OnFrameworkInitializationCompleted();

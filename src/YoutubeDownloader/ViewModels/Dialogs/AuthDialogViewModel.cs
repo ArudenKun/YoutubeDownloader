@@ -1,46 +1,52 @@
-﻿using System.Net;
-using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SukiUI.Dialogs;
 using Volo.Abp.DependencyInjection;
 using YoutubeDownloader.Utilities;
+using ZLinq;
 
 namespace YoutubeDownloader.ViewModels.Dialogs;
 
 public sealed partial class AuthDialogViewModel : DialogViewModel, ITransientDependency
 {
-    public CoreWebView2CreationProperties CreationProperties { get; } =
-        new() { UserDataFolder = AppHelper.DataDir };
-
-    public IReadOnlyList<Cookie> Cookies
-    {
-        get => SettingsService.LastAuthCookies;
-        set => SettingsService.LastAuthCookies = value;
-    }
+    [ObservableProperty]
+    public partial string CookiesOrCookiePath { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial bool IsAuthenticated { get; set; }
 
+    public DateTime DateTimeText => DateTime.MinValue;
+
     public override void OnLoaded()
     {
         IsAuthenticated =
-            Cookies.Any()
+            SettingsService.LastAuthCookies.Any()
             &&
             // None of the '__SECURE' cookies should be expired
-            Cookies
-                .Where(c => c.Name.StartsWith("__SECURE", StringComparison.OrdinalIgnoreCase))
+            SettingsService
+                .LastAuthCookies.Where(c =>
+                    c.Name.StartsWith("__SECURE", StringComparison.OrdinalIgnoreCase)
+                )
                 .All(c => !c.Expired && c.Expires.ToUniversalTime() > DateTime.UtcNow);
     }
 
     [RelayCommand]
-    private void Logout()
+    private void Submit()
     {
-        Cookies = [];
-    }
+        if (string.IsNullOrWhiteSpace(CookiesOrCookiePath))
+            return;
 
-    public void SetDialog(ISukiDialog dialog)
-    {
-        Dialog = dialog;
+        SettingsService.LastAuthCookies = File.Exists(CookiesOrCookiePath)
+            ? NetscapeCookieParser
+                .ParseFile(CookiesOrCookiePath)
+                .AsValueEnumerable()
+                .Select(c => c)
+                .ToArray()
+            : NetscapeCookieParser
+                .Parse(CookiesOrCookiePath)
+                .AsValueEnumerable()
+                .Select(c => c)
+                .ToArray();
+
+        CloseDialog();
     }
 }
