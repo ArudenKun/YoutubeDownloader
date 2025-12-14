@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using AutoInterfaceAttributes;
+using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -34,10 +34,12 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
         LazyServiceProvider.LazyGetRequiredService<IDialogService>();
 
     public ISettingsService SettingsService =>
-        LazyServiceProvider.GetRequiredService<ISettingsService>();
+        LazyServiceProvider.LazyGetRequiredService<ISettingsService>();
 
     public IStorageProvider StorageProvider =>
         LazyServiceProvider.LazyGetRequiredService<IStorageProvider>();
+
+    public IClipboard Clipboard => LazyServiceProvider.LazyGetRequiredService<IClipboard>();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -88,46 +90,49 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
 
     #region Disposal
 
-    ~ViewModel() => Dispose(false);
-
-    private List<Action?>? _onDisposeActions;
-
-    public void OnDispose(Action? callback = null)
-    {
-        _onDisposeActions ??= [];
-        _onDisposeActions.Add(callback);
-    }
-
+    private readonly List<IDisposable> _disposables = [];
     private bool _isDisposed;
 
-    /// <inheritdoc cref="Dispose"/>>
-    protected virtual void Dispose(bool disposing)
-    {
-        DispatchHelper.Invoke(() =>
-        {
-            if (_isDisposed)
-                return;
-
-            if (!disposing)
-                return;
-
-            if (_onDisposeActions is { Count: > 0 })
-            {
-                foreach (var disposeAction in _onDisposeActions.Distinct())
-                {
-                    disposeAction?.Invoke();
-                }
-            }
-
-            _isDisposed = true;
-        });
-    }
+    ~ViewModel() => Dispose(false);
 
     /// <inheritdoc />>
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    public void AddTo(IDisposable disposable)
+    {
+        if (_isDisposed)
+        {
+            disposable.Dispose();
+            return;
+        }
+
+        _disposables.Add(disposable);
+    }
+
+    /// <inheritdoc cref="Dispose"/>>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_isDisposed)
+            return;
+
+        if (!disposing)
+            return;
+
+        DispatchHelper.Invoke(() =>
+        {
+            foreach (var disposable in _disposables)
+            {
+                disposable.Dispose();
+            }
+
+            _disposables.Clear();
+        });
+
+        _isDisposed = true;
     }
 
     #endregion

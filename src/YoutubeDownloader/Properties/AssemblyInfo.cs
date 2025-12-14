@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Avalonia.Metadata;
+﻿using Avalonia.Metadata;
 using R3.ObservableEvents;
 
 [assembly: GenerateStaticEventObservables(typeof(TaskScheduler))]
@@ -31,5 +30,9 @@ using R3.ObservableEvents;
 [assembly: XmlnsDefinition(
     "https://github.com/arudenkun/YoutubeDownloader",
     "YoutubeDownloader.Controls"
+)]
+[assembly: XmlnsDefinition(
+    "https://github.com/arudenkun/YoutubeDownloader",
+    "YoutubeDownloader.Controls.WebView"
 )]
 [assembly: XmlnsPrefix("https://github.com/arudenkun/YoutubeDownloader", "yd")]

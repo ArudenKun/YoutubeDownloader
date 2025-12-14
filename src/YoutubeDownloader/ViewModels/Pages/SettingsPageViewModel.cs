@@ -2,8 +2,10 @@
 using CommunityToolkit.Mvvm.Input;
 using Lucide.Avalonia;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Web.WebView2.WinForms;
 using SukiUI.Dialogs;
 using Volo.Abp.DependencyInjection;
+using YoutubeDownloader.Utilities;
 using YoutubeDownloader.ViewModels.Dialogs;
 
 namespace YoutubeDownloader.ViewModels.Pages;
@@ -23,8 +25,13 @@ public sealed partial class SettingsPageViewModel : PageViewModel, ISingletonDep
     public override string DisplayName => "Settings";
     public override LucideIconKind IconKind => LucideIconKind.Settings;
 
+    public CoreWebView2CreationProperties CreationProperties { get; } =
+        new() { UserDataFolder = AppHelper.DataDir };
+
     [ObservableProperty]
-    public partial string Search { get; set; } = string.Empty;
+    public partial string Search { get; set; } = "https://www.youtube.com/watch?v=hlM4zl3QHIY";
+
+    public override void OnLoaded() { }
 
     [RelayCommand]
     private void ProcessSearch() { }

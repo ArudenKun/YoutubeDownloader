@@ -3,6 +3,7 @@ using Avalonia.Controls.Templates;
 using Volo.Abp.DependencyInjection;
 using YoutubeDownloader.ViewModels;
 using YoutubeDownloader.Views;
+using Control = Avalonia.Controls.Control;
 
 namespace YoutubeDownloader;
 

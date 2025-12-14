@@ -14,7 +14,7 @@
     x:DataType="yd:MainWindowViewModel"
     CanMaximize="False"
     CanResize="True"
-    Icon="/Assets/avalonia-logo.ico"
+    Icon="/Assets/favicon.ico"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <suki:SukiWindow.Hosts>
@@ -26,7 +26,7 @@
             Width="20"
             Height="20"
             VerticalAlignment="Center"
-            Source="/Assets/avalonia-logo.ico" />
+            Source="/Assets/favicon.ico" />
     </suki:SukiWindow.LogoContent>
     <suki:SukiWindow.RightWindowTitleBarControls>
         <!--  ReSharper disable Xaml.StyleClassNotFound  -->

@@ -5,6 +5,8 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using KeyEventArgs = Avalonia.Input.KeyEventArgs;
+using TextBox = Avalonia.Controls.TextBox;
 
 namespace YoutubeDownloader.Controls;
 
