@@ -20,7 +20,7 @@
         <yd:NativeWebView
             Name="WebView"
             Grid.Row="2"
-            CreationProperties="{Binding CreationProperties}"
-            Source="{Binding Search}" />
+            Source="{Binding Search}"
+            UserDataFolder="{Binding UserDataFolder}" />
     </Grid>
 </UserControl>

@@ -25,8 +25,7 @@ public sealed partial class SettingsPageViewModel : PageViewModel, ISingletonDep
     public override string DisplayName => "Settings";
     public override LucideIconKind IconKind => LucideIconKind.Settings;
 
-    public CoreWebView2CreationProperties CreationProperties { get; } =
-        new() { UserDataFolder = AppHelper.DataDir };
+    public string UserDataFolder => AppHelper.DataDir;
 
     [ObservableProperty]
     public partial string Search { get; set; } = "https://www.youtube.com/watch?v=hlM4zl3QHIY";
