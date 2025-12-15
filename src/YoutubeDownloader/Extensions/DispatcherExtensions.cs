@@ -16,4 +16,27 @@ public static class DispatcherExtensions
         dispatcher.Post(() => tcs.SetResult(action()), dispatcherPriority);
         return tcs.Task;
     }
+
+    public static void WaitOnDispatcherFrame(this Task task, Dispatcher? dispatcher = null)
+    {
+        var frame = new DispatcherFrame();
+        AggregateException? capturedException = null;
+
+        task.ContinueWith(
+            t =>
+            {
+                capturedException = t.Exception;
+                frame.Continue = false; // 结束消息循环
+            },
+            TaskContinuationOptions.AttachedToParent
+        );
+
+        dispatcher ??= Dispatcher.UIThread;
+        dispatcher.PushFrame(frame);
+
+        if (capturedException != null)
+        {
+            throw capturedException;
+        }
+    }
 }

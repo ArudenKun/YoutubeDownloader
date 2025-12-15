@@ -1,4 +1,5 @@
 ﻿using Avalonia.Interactivity;
+using R3;
 using Volo.Abp.DependencyInjection;
 using YoutubeDownloader.ViewModels;
 
@@ -7,6 +8,8 @@ namespace YoutubeDownloader.Views;
 public abstract class UserControl<TViewModel> : UserControl, IView<TViewModel>, ITransientDependency
     where TViewModel : ViewModel
 {
+    protected CompositeDisposable Disposables { get; } = new();
+
     public new TViewModel DataContext
     {
         get =>
@@ -29,5 +32,11 @@ public abstract class UserControl<TViewModel> : UserControl, IView<TViewModel>, 
     {
         base.OnUnloaded(e);
         ViewModel.OnUnloaded();
+    }
+
+    public void Dispose()
+    {
+        Disposables.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

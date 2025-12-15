@@ -26,7 +26,7 @@ public sealed partial class MainViewModel
     public ICollection<PageViewModel> Pages => _pageCache.Values;
 
     [ObservableProperty]
-    public partial PageViewModel Page { get; set; }
+    public partial PageViewModel Page { get; set; } = null!;
 
     public Task HandleEventAsync(ShowPageEventData eventData)
     {

@@ -4,6 +4,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using R3;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using YoutubeDownloader.Services;
@@ -90,7 +91,8 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
 
     #region Disposal
 
-    private readonly List<IDisposable> _disposables = [];
+    // ReSharper disable once CollectionNeverQueried.Local
+    private readonly CompositeDisposable _disposables = new();
     private bool _isDisposed;
 
     ~ViewModel() => Dispose(false);
@@ -122,16 +124,7 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
         if (!disposing)
             return;
 
-        DispatchHelper.Invoke(() =>
-        {
-            foreach (var disposable in _disposables)
-            {
-                disposable.Dispose();
-            }
-
-            _disposables.Clear();
-        });
-
+        DispatchHelper.Invoke(() => _disposables.Dispose());
         _isDisposed = true;
     }
 

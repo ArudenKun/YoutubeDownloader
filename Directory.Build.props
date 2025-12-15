@@ -12,6 +12,11 @@
     <AbpProjectType>app</AbpProjectType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="**\*.abppkg" />
     <None Remove="**\*.abppkg.analyze.json" />

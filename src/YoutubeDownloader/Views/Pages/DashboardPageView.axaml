@@ -55,11 +55,6 @@
                                     Kind="ArrowRight" />
                             </Button>
                         </TextBox.InnerRightContent>
-                        <Interaction.Behaviors>
-                            <RoutedEventTriggerBehavior RoutingStrategies="Tunnel">
-                                <InvokeCommandAction />
-                            </RoutedEventTriggerBehavior>
-                        </Interaction.Behaviors>
                     </TextBox>
                 </suki:GlassCard>
 

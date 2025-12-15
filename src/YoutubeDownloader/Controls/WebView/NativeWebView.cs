@@ -9,6 +9,9 @@ using Microsoft.Web.WebView2.WinForms;
 using R3;
 using R3.ObservableEvents;
 using Vanara.PInvoke;
+using YoutubeDownloader.Extensions;
+using ZLinq;
+using static Vanara.PInvoke.User32;
 using WinFormsControl = System.Windows.Forms.Control;
 using WinFormsPanel = System.Windows.Forms.Panel;
 
@@ -19,51 +22,46 @@ public class NativeWebView : NativeControlHost, IDisposable
 {
     private const string EmptySource = "about:blank";
 
-    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
-
     private WebView2? _webView; // the actual WebView2 control
     private WinFormsControl? _hostPanel; // WinForms panel to host WebView2
-    private IntPtr _parentHwnd; // Avalonia native HWND
-    private IntPtr _prevParentWndProc = IntPtr.Zero; // original parent WndProc
+    private HWND _prevParentWndProc = HWND.NULL; // original parent WndProc
     private bool _isSubclassed; // flag if parent is subclassed
     private GCHandle? _wndProcHandle; // keeps delegate alive for SetWindowLongPtr
     private bool _isInitialized;
-    private IDisposable? _subscriptions;
+    private IDisposable? _webViewSubscriptions;
+    private IDisposable? _coreWebVie2Subscriptions;
 
-    public event EventHandler<CoreWebView2InitializationCompletedEventArgs>? InitializationCompleted;
+    public event EventHandler<CoreWebView2InitializationCompletedEventArgs>? WebViewCreated;
     public event EventHandler<CoreWebView2NavigationCompletedEventArgs>? NavigationCompleted;
     public event EventHandler<CoreWebView2NavigationStartingEventArgs>? NavigationStarting;
 
     // ReSharper disable once InconsistentNaming
     public event EventHandler<CoreWebView2DOMContentLoadedEventArgs>? DOMContentLoaded;
 
-    public static readonly StyledProperty<CoreWebView2CreationProperties?> CreationPropertiesProperty =
-        AvaloniaProperty.Register<NativeWebView, CoreWebView2CreationProperties?>(
-            nameof(CreationProperties),
-            defaultBindingMode: BindingMode.OneWay
+    public event EventHandler<CoreWebView2WebResourceRequestedEventArgs>? WebResourceRequested;
+    public event EventHandler<CoreWebView2WebResourceResponseReceivedEventArgs>? WebResourceResponseReceived;
+
+    public HWND Handle { get; private set; }
+
+    public static readonly StyledProperty<string?> UserDataFolderProperty =
+        AvaloniaProperty.Register<NativeWebView, string?>(
+            nameof(UserDataFolder),
+            defaultBindingMode: BindingMode.OneTime
         );
 
-    public CoreWebView2CreationProperties? CreationProperties
+    public string? UserDataFolder
     {
-        get => GetValue(CreationPropertiesProperty);
-        set => SetValue(CreationPropertiesProperty, value);
+        get => GetValue(UserDataFolderProperty);
+        set => SetValue(UserDataFolderProperty, value);
     }
 
-    public static readonly StyledProperty<CoreWebView2> CoreWebView2Property =
-        AvaloniaProperty.Register<NativeWebView, CoreWebView2>(
-            nameof(CoreWebView2),
-            defaultBindingMode: BindingMode.OneWayToSource
-        );
+    public CoreWebView2 CoreWebView2 =>
+        _webView?.CoreWebView2
+        ?? throw new InvalidOperationException("CoreWebView2 is not initialized.");
 
-    public CoreWebView2 CoreWebView2
-    {
-        get => GetValue(CoreWebView2Property);
-        set => SetValue(CoreWebView2Property, value);
-    }
+    public CoreWebView2CookieManager CookieManager => CoreWebView2.CookieManager;
 
-    public bool CanGoBack => CoreWebView2.CanGoBack;
-
-    public bool CanGoForward => CoreWebView2.CanGoForward;
+    public CoreWebView2Settings Settings => CoreWebView2.Settings;
 
     public static readonly StyledProperty<Uri?> SourceProperty = AvaloniaProperty.Register<
         NativeWebView,
@@ -76,13 +74,84 @@ public class NativeWebView : NativeControlHost, IDisposable
         set => SetValue(SourceProperty, value);
     }
 
+    public bool CanGoBack => CoreWebView2.CanGoBack;
+
+    public bool CanGoForward => CoreWebView2.CanGoForward;
+
+    public bool GoBack()
+    {
+        _webView?.GoBack();
+        return true;
+    }
+
+    public bool GoForward()
+    {
+        _webView?.GoForward();
+        return true;
+    }
+
+    public Task<string?> InvokeScript(string scriptName)
+    {
+        return _webView?.ExecuteScriptAsync(scriptName) ?? Task.FromResult<string?>(null);
+    }
+
+    public void Navigate(Uri url)
+    {
+        _webView?.Source = url;
+    }
+
+    public void Navigate(Uri url, HttpMethod httpMethod, IDictionary<string, string> headers)
+    {
+        var headerString = headers
+            .AsValueEnumerable()
+            .Select(x => $"{x.Key}: {x.Value}")
+            .JoinToString('\n');
+
+        Navigate(url, httpMethod, headerString);
+    }
+
+    public void Navigate(Uri url, HttpMethod httpMethod, string headers)
+    {
+        if (
+            _webView is null
+            || !_isInitialized
+            || httpMethod != HttpMethod.Get
+            || httpMethod != HttpMethod.Post
+        )
+            return;
+
+        var request = CoreWebView2.Environment.CreateWebResourceRequest(
+            url.ToString(),
+            httpMethod.ToString().ToUpperInvariant(),
+            null,
+            headers
+        );
+        _webView.CoreWebView2.NavigateWithWebResourceRequest(request);
+    }
+
+    public void NavigateToString(string text)
+    {
+        _webView?.NavigateToString(text);
+    }
+
+    public bool Refresh()
+    {
+        _webView?.Reload();
+        return true;
+    }
+
+    public bool Stop()
+    {
+        _webView?.Stop();
+        return true;
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
         // Guard: Do not run if CoreWebView2 is not yet ready.
-        // The value is already stored in the Avalonia Property system,
-        // so InitializeWebView will pick it up when it finishes.
+        // The value is already stored in the Avalonia Property system
         if (!_isInitialized || _webView == null)
             return;
 
@@ -95,18 +164,18 @@ public class NativeWebView : NativeControlHost, IDisposable
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
     {
-        _parentHwnd = parent.Handle;
+        Handle = parent.Handle;
 
         // create non-top-level host panel and fill parent
         _hostPanel = new WinFormsPanel { Dock = DockStyle.Fill };
         _hostPanel.CreateControl();
 
         // parent it to Avalonia HWND
-        User32.SetParent(_hostPanel.Handle, _parentHwnd);
+        SetParent(_hostPanel.Handle, Handle);
 
-        var style = User32.GetWindowLongPtr(_hostPanel.Handle, User32.WindowLongFlags.GWL_STYLE);
-        style |= (IntPtr)(User32.WindowStyles.WS_CHILD | User32.WindowStyles.WS_VISIBLE);
-        User32.SetWindowLong(_hostPanel.Handle, User32.WindowLongFlags.GWL_STYLE, style);
+        var style = GetWindowLongPtr(_hostPanel.Handle, WindowLongFlags.GWL_STYLE);
+        style |= (IntPtr)(WindowStyles.WS_CHILD | WindowStyles.WS_VISIBLE);
+        SetWindowLong(_hostPanel.Handle, WindowLongFlags.GWL_STYLE, style);
 
         // match panel size to parent
         ResizeHostToParent();
@@ -119,7 +188,7 @@ public class NativeWebView : NativeControlHost, IDisposable
         _hostPanel.Controls.Add(_webView);
         _webView.CreateControl();
 
-        InitializeWebView();
+        InitializeWebViewAsync().WaitOnDispatcherFrame();
 
         // return WebView2 HWND to Avalonia
         return new PlatformHandle(_webView.Handle, "HWND");
@@ -144,55 +213,55 @@ public class NativeWebView : NativeControlHost, IDisposable
         base.DestroyNativeControlCore(control);
     }
 
-    private async void InitializeWebView()
+    private async Task InitializeWebViewAsync()
     {
-        try
+        _webView!.CreationProperties = new CoreWebView2CreationProperties
         {
-            if (CreationProperties is not null)
-            {
-                _webView?.CreationProperties = CreationProperties;
-            }
+            UserDataFolder = UserDataFolder,
+        };
 
-            await _webView!.EnsureCoreWebView2Async();
-            SetValue(CoreWebView2Property, _webView.CoreWebView2);
-            _subscriptions = AddHandlers();
+        _webViewSubscriptions = AddWebViewHandlers();
+        await _webView.EnsureCoreWebView2Async();
+        _coreWebVie2Subscriptions = AddCoreWebViewHandlers();
 
-            _isInitialized = true;
-
-            if (Source is not null)
-            {
-                _webView.Source = Source;
-            }
-            else
-            {
-                _webView.CoreWebView2.Navigate(EmptySource);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"WebView2 init error: {ex.Message}");
-        }
+        _isInitialized = true;
+        _webView.Source = Source ?? new Uri(EmptySource);
     }
 
-    private IDisposable AddHandlers() =>
+    private IDisposable AddWebViewHandlers() =>
         Disposable.Combine(
             _webView
                 .Events()
                 .CoreWebView2InitializationCompleted.Subscribe(x =>
-                    InitializationCompleted?.Invoke(this, x)
+                    WebViewCreated?.Invoke(this, x)
                 ),
-            CoreWebView2
+            _webView
                 .Events()
                 .NavigationStarting.Subscribe(x => NavigationStarting?.Invoke(this, x)),
-            CoreWebView2
+            _webView
                 .Events()
-                .NavigationCompleted.Subscribe(x => NavigationCompleted?.Invoke(this, x)),
-            CoreWebView2.Events().DOMContentLoaded.Subscribe(x => DOMContentLoaded?.Invoke(this, x))
+                .NavigationCompleted.Subscribe(x => NavigationCompleted?.Invoke(this, x))
+        );
+
+    private IDisposable AddCoreWebViewHandlers() =>
+        Disposable.Combine(
+            _webView!
+                .CoreWebView2.Events()
+                .DOMContentLoaded.Subscribe(x => DOMContentLoaded?.Invoke(this, x)),
+            _webView
+                .CoreWebView2.Events()
+                .WebResourceRequested.Subscribe(x => WebResourceRequested?.Invoke(this, x)),
+            _webView
+                .CoreWebView2.Events()
+                .WebResourceResponseReceived.Subscribe(x =>
+                    WebResourceResponseReceived?.Invoke(this, x)
+                )
         );
 
     public void Dispose()
     {
-        _subscriptions?.Dispose();
+        _webViewSubscriptions?.Dispose();
+        _coreWebVie2Subscriptions?.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -201,41 +270,37 @@ public class NativeWebView : NativeControlHost, IDisposable
     // adjust host panel to fill Avalonia HWND
     private void ResizeHostToParent()
     {
-        if (_hostPanel == null || _parentHwnd == IntPtr.Zero)
+        if (_hostPanel == null || Handle == IntPtr.Zero)
             return;
 
-        if (User32.GetClientRect(_parentHwnd, out var rc))
+        if (GetClientRect(Handle, out var rc))
         {
             int w = rc.Right - rc.Left;
             int h = rc.Bottom - rc.Top;
-            User32.MoveWindow(_hostPanel.Handle, 0, 0, Math.Max(0, w), Math.Max(0, h), true);
+            MoveWindow(_hostPanel.Handle, 0, 0, Math.Max(0, w), Math.Max(0, h), true);
         }
     }
 
     // subclass parent HWND to intercept size/move messages
     private void SubclassParentWindow()
     {
-        if (_isSubclassed || _parentHwnd == IntPtr.Zero)
+        if (_isSubclassed || Handle == IntPtr.Zero)
             return;
 
-        WndProcDelegate newProc = ParentWndProc;
+        WindowProc newProc = ParentWndProc;
         _wndProcHandle = GCHandle.Alloc(newProc); // keep delegate alive
-        IntPtr ptr = Marshal.GetFunctionPointerForDelegate(newProc);
-        _prevParentWndProc = User32.SetWindowLong(
-            _parentHwnd,
-            User32.WindowLongFlags.GWL_WNDPROC,
-            ptr
-        );
+        var ptr = Marshal.GetFunctionPointerForDelegate(newProc);
+        _prevParentWndProc = SetWindowLong(Handle, WindowLongFlags.GWL_WNDPROC, ptr);
         _isSubclassed = true;
     }
 
     // remove subclass and restore original WndProc
     private void UnsubclassParentWindow()
     {
-        if (!_isSubclassed || _parentHwnd == IntPtr.Zero)
+        if (!_isSubclassed || Handle == IntPtr.Zero)
             return;
 
-        User32.SetWindowLong(_parentHwnd, User32.WindowLongFlags.GWL_WNDPROC, _prevParentWndProc);
+        SetWindowLong(Handle, WindowLongFlags.GWL_WNDPROC, (IntPtr)_prevParentWndProc);
         _prevParentWndProc = IntPtr.Zero;
 
         if (_wndProcHandle is { IsAllocated: true })
@@ -245,16 +310,17 @@ public class NativeWebView : NativeControlHost, IDisposable
     }
 
     // intercept parent window messages to handle resizing
-    private IntPtr ParentWndProc(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)
+    private IntPtr ParentWndProc(HWND hwnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
-        const uint wmSize = 0x0005;
-        const uint wmMove = 0x0003;
-        const uint wmWindowposchanged = 0x0047;
-
-        if (msg == wmSize || msg == wmMove || msg == wmWindowposchanged)
+        if (
+            (WindowMessage)msg
+            is WindowMessage.WM_SIZE
+                or WindowMessage.WM_MOVE
+                or WindowMessage.WM_WINDOWPOSCHANGED
+        )
             ResizeHostToParent();
 
-        return User32.CallWindowProc(_prevParentWndProc, hwnd, msg, wParam, lParam);
+        return CallWindowProc((IntPtr)_prevParentWndProc, hwnd, msg, wParam, lParam);
     }
 
     #endregion;

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using R3;
 using R3.ObservableEvents;
 using Volo.Abp.DependencyInjection;
+using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Services;
 using YoutubeDownloader.Utilities;
 using YoutubeDownloader.ViewModels;

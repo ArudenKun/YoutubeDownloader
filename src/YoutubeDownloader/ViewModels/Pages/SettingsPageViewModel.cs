@@ -2,11 +2,11 @@
 using CommunityToolkit.Mvvm.Input;
 using Lucide.Avalonia;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Web.WebView2.WinForms;
 using SukiUI.Dialogs;
 using Volo.Abp.DependencyInjection;
 using YoutubeDownloader.Utilities;
 using YoutubeDownloader.ViewModels.Dialogs;
+using YoutubeExplode;
 
 namespace YoutubeDownloader.ViewModels.Pages;
 
@@ -14,27 +14,50 @@ public sealed partial class SettingsPageViewModel : PageViewModel, ISingletonDep
 {
     private readonly ISukiDialogManager _dialogManager;
     private readonly IServiceProvider _serviceProvider;
+    private readonly YoutubeClient _youtubeClient;
 
-    public SettingsPageViewModel(ISukiDialogManager dialogManager, IServiceProvider serviceProvider)
+    public SettingsPageViewModel(
+        ISukiDialogManager dialogManager,
+        IServiceProvider serviceProvider,
+        YoutubeClient youtubeClient
+    )
     {
         _dialogManager = dialogManager;
         _serviceProvider = serviceProvider;
+        _youtubeClient = youtubeClient;
     }
 
     public override int Index => int.MaxValue;
     public override string DisplayName => "Settings";
     public override LucideIconKind IconKind => LucideIconKind.Settings;
 
-    public CoreWebView2CreationProperties CreationProperties { get; } =
-        new() { UserDataFolder = AppHelper.DataDir };
+    public string UserDataFolder => AppHelper.DataDir;
 
     [ObservableProperty]
-    public partial string Search { get; set; } = "https://www.youtube.com/watch?v=hlM4zl3QHIY";
+    public partial string Search { get; set; } = string.Empty;
 
-    public override void OnLoaded() { }
+    [ObservableProperty]
+    public partial Uri Url { get; set; } = new("about:blank");
 
     [RelayCommand]
-    private void ProcessSearch() { }
+    private async Task ProcessSearchAsync()
+    {
+        Url = new Uri(Search);
+        // var client = new HttpClient();
+        // var request = new HttpRequestMessage();
+        // request.Headers.Referrer = new Uri("https://www.youtube.com/watch?v=");
+        //
+        // var manifest = await _youtubeClient.Videos.Streams.GetManifestAsync(Search);
+        // var videoStreamInfo = manifest.GetVideoOnlyStreams().GetWithHighestVideoQuality();
+        // var audioStreamInfo = manifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+        //
+        // using var media = new Media(
+        //     _libVlc,
+        //     new Uri(videoStreamInfo.Url),
+        //     [$":input-slave={audioStreamInfo.Url}"]
+        // );
+        // MediaPlayer.Play(media);
+    }
 
     [RelayCommand]
     private void OpenAuthDialog()
