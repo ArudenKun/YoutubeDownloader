@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lucide.Avalonia;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,9 @@ public sealed partial class SettingsPageViewModel : PageViewModel, ISingletonDep
     public override LucideIconKind IconKind => LucideIconKind.Settings;
 
     public string UserDataFolder => AppHelper.DataDir;
+
+    public CoreWebView2CreationProperties CreationProperties { get; } =
+        new() { UserDataFolder = AppHelper.DataDir, EnabledDevTools = true };
 
     [ObservableProperty]
     public partial string Search { get; set; } = string.Empty;

@@ -1,8 +1,8 @@
-﻿using Avalonia.Interactivity;
+﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Microsoft.Web.WebView2.Core;
 using R3;
 using R3.ObservableEvents;
-using YoutubeDownloader.Controls.WebView;
 using YoutubeDownloader.ViewModels.Pages;
 
 namespace YoutubeDownloader.Views.Pages;
@@ -12,33 +12,34 @@ public partial class SettingsPageView : UserControl<SettingsPageViewModel>
     public SettingsPageView()
     {
         InitializeComponent();
-        NativeWebView = WebView;
+        WebView2 = WebView;
     }
 
-    public NativeWebView NativeWebView { get; }
+    public WebView2 WebView2 { get; }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
-        NativeWebView
+        WebView2
             .Events()
-            .WebViewCreated.Subscribe(_ =>
+            .CoreWebView2InitializationCompleted.Subscribe(_ =>
             {
-                NativeWebView.CoreWebView2.AddWebResourceRequestedFilter(
+                WebView2.CoreWebView2!.AddWebResourceRequestedFilter(
                     "https://www.youtube.com/embed/*",
                     CoreWebView2WebResourceContext.All
                 );
 
-                NativeWebView.Settings.AreDefaultContextMenusEnabled = false;
-                NativeWebView.Settings.AreDevToolsEnabled = false;
-                NativeWebView.Settings.IsGeneralAutofillEnabled = false;
-                NativeWebView.Settings.IsPasswordAutosaveEnabled = false;
-                NativeWebView.Settings.IsStatusBarEnabled = false;
-                NativeWebView.Settings.IsSwipeNavigationEnabled = false;
+                var coreWebView2 = WebView2.CoreWebView2;
+                coreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                coreWebView2.Settings.AreDevToolsEnabled = false;
+                coreWebView2.Settings.IsGeneralAutofillEnabled = false;
+                coreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+                coreWebView2.Settings.IsStatusBarEnabled = false;
+                coreWebView2.Settings.IsSwipeNavigationEnabled = false;
             })
             .AddTo(Disposables);
-        NativeWebView
+        WebView2
             .Events()
             .WebResourceRequested.Subscribe(x =>
             {

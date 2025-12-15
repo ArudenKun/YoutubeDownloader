@@ -2,7 +2,6 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -25,7 +24,6 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="HotAvalonia" Version="3.0.2" PrivateAssets="All" />
     <PackageReference Include="Lucide.Avalonia" Version="0.1.53" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58" />
     <PackageReference Include="R3Extensions.Avalonia" Version="1.3.0" />
     <PackageReference Include="R3Extensions.ObservableEvents.SourceGenerator" Version="1.3.3" />
     <PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.3" />
@@ -41,6 +39,7 @@
     <PackageReference Include="Vanara.PInvoke.User32" Version="4.2.1" />
     <PackageReference Include="Velopack" Version="0.0.1298" />
     <PackageReference Include="Volo.Abp.EventBus" Version="10.0.1" />
+    <PackageReference Include="WebView2.Avalonia" Version="1.0.3240.44-preview.250526.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\YoutubeDownloader.Core\YoutubeDownloader.Core.csproj" />
