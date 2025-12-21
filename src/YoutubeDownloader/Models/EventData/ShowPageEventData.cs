@@ -1,3 +1,3 @@
 ﻿namespace YoutubeDownloader.Models.EventData;
 
-public record ShowPageEventData(Type ViewModelType);
+public sealed record ShowPageEventData(Type ViewModelType);

@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AsyncAwaitBestPractices;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Velopack;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using YoutubeDownloader.Models.EventData;
@@ -14,6 +16,9 @@ public sealed partial class MainViewModel
 {
     private readonly Dictionary<Type, PageViewModel> _pageCache;
 
+    private bool _updatedChecked;
+    private UpdateManager _updateManager;
+
     public MainViewModel(IEnumerable<IPageViewModel> pageViewModels)
     {
         _pageCache = pageViewModels
@@ -21,12 +26,22 @@ public sealed partial class MainViewModel
             .OrderBy(x => x.Index)
             .Cast<PageViewModel>()
             .ToDictionary(k => k.GetType(), v => v);
+
+        _updateManager = new UpdateManager("https://github.com/ArudenKun/YoutubeDownloader");
     }
 
     public ICollection<PageViewModel> Pages => _pageCache.Values;
 
     [ObservableProperty]
     public partial PageViewModel Page { get; set; } = null!;
+
+    public override void OnLoaded()
+    {
+        if (!_updatedChecked)
+        {
+            CheckForUpdatesAsync().SafeFireAndForget();
+        }
+    }
 
     public Task HandleEventAsync(ShowPageEventData eventData)
     {
@@ -37,4 +52,6 @@ public sealed partial class MainViewModel
 
         return Task.CompletedTask;
     }
+
+    private async Task CheckForUpdatesAsync() { }
 }

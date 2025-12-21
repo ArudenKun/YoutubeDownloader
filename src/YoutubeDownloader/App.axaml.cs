@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using R3;
 using R3.ObservableEvents;
 using Volo.Abp.DependencyInjection;
-using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Services;
 using YoutubeDownloader.Utilities;
 using YoutubeDownloader.ViewModels;
@@ -21,6 +20,7 @@ public sealed class App : Application, IDisposable, ISingletonDependency
     private readonly ViewLocator _viewLocator;
     private readonly IToastService _toastService;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IThemeService _themeService;
 
     private IDisposable? _subscriptions;
 
@@ -28,13 +28,15 @@ public sealed class App : Application, IDisposable, ISingletonDependency
         MainWindowViewModel mainWindowViewModel,
         ViewLocator viewLocator,
         IToastService toastService,
-        ILoggerFactory loggerFactory
+        ILoggerFactory loggerFactory,
+        IThemeService themeService
     )
     {
         _mainWindowViewModel = mainWindowViewModel;
         _viewLocator = viewLocator;
         _toastService = toastService;
         _loggerFactory = loggerFactory;
+        _themeService = themeService;
     }
 
     // ReSharper disable once ArrangeModifiersOrder
@@ -51,6 +53,7 @@ public sealed class App : Application, IDisposable, ISingletonDependency
     {
         AvaloniaXamlLoader.Load(this);
         DataTemplates.Add(_viewLocator);
+        _themeService.Initialize();
 
         _subscriptions = Disposable.Combine(
             AppDomain

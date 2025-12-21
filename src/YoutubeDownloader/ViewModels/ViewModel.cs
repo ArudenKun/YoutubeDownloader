@@ -8,7 +8,6 @@ using R3;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using YoutubeDownloader.Services;
-using YoutubeDownloader.Utilities;
 
 namespace YoutubeDownloader.ViewModels;
 
@@ -34,17 +33,21 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
     public IDialogService DialogService =>
         LazyServiceProvider.LazyGetRequiredService<IDialogService>();
 
-    public ISettingsService SettingsService =>
-        LazyServiceProvider.LazyGetRequiredService<ISettingsService>();
+    public SettingsService SettingsService =>
+        LazyServiceProvider.LazyGetRequiredService<SettingsService>();
+
+    public IThemeService ThemeService =>
+        LazyServiceProvider.LazyGetRequiredService<IThemeService>();
 
     public IStorageProvider StorageProvider =>
         LazyServiceProvider.LazyGetRequiredService<IStorageProvider>();
 
     public IClipboard Clipboard => LazyServiceProvider.LazyGetRequiredService<IClipboard>();
+    public ILauncher Launcher => LazyServiceProvider.LazyGetRequiredService<ILauncher>();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
-    public partial bool IsBusy { get; set; }
+    public virtual partial bool IsBusy { get; set; }
 
     [ObservableProperty]
     public partial string IsBusyText { get; set; } = string.Empty;
@@ -93,7 +96,7 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
 
     // ReSharper disable once CollectionNeverQueried.Local
     private readonly CompositeDisposable _disposables = new();
-    private bool _isDisposed;
+    protected bool IsDisposed { get; private set; }
 
     ~ViewModel() => Dispose(false);
 
@@ -106,7 +109,7 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
 
     public void AddTo(IDisposable disposable)
     {
-        if (_isDisposed)
+        if (IsDisposed)
         {
             disposable.Dispose();
             return;
@@ -118,14 +121,14 @@ public abstract partial class ViewModel : ObservableValidator, IViewModel
     /// <inheritdoc cref="Dispose"/>>
     protected virtual void Dispose(bool disposing)
     {
-        if (_isDisposed)
+        if (IsDisposed)
             return;
 
         if (!disposing)
             return;
 
-        DispatchHelper.Invoke(() => _disposables.Dispose());
-        _isDisposed = true;
+        _disposables.Dispose();
+        IsDisposed = true;
     }
 
     #endregion

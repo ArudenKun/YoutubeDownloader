@@ -2,6 +2,7 @@
     x:Class="YoutubeDownloader.Views.Pages.DashboardPageView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:suki="https://github.com/kikipoulet/SukiUI"
@@ -27,7 +28,7 @@
                         FontSize="16"
                         MaxLines="4"
                         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                        Text="{Binding SearchQuery}"
+                        Text="{Binding Query}"
                         Theme="{DynamicResource SoloTextBox}"
                         ToolTip.Tip="Any valid YouTube URL or ID is accepted. Prepend a question mark (?) to perform search by text."
                         Watermark="URL or search query">
@@ -39,16 +40,14 @@
                                 Kind="Search" />
                         </TextBox.InnerLeftContent>
                         <TextBox.InnerRightContent>
-                            <!--  ReSharper disable Xaml.StyleClassNotFound  -->
                             <Button
                                 x:Name="ProcessQueryButton"
                                 Margin="8,0,0,0"
                                 Padding="4"
-                                Classes="Flat"
-                                Command="{Binding ProcessSearchQueryCommand}"
+                                Command="{Binding ProcessQueryCommand}"
                                 IsDefault="True"
+                                Theme="{DynamicResource MaterialFlatButton}"
                                 ToolTip.Tip="Process query (Enter)">
-                                <!--  ReSharper restore Xaml.StyleClassNotFound  -->
                                 <LucideIcon
                                     Width="24"
                                     Height="24"
@@ -64,6 +63,7 @@
                     Margin="8,0,0,0"
                     Padding="8"
                     VerticalAlignment="Center"
+                    Command="{Binding ShowAuthSetupCommand}"
                     Foreground="{DynamicResource MaterialDarkForegroundBrush}"
                     IsVisible="{OnPlatform False,
                                            Windows=True}"
@@ -72,7 +72,7 @@
                     <LucideIcon
                         Width="24"
                         Height="24"
-                        Kind="KeyRound" />
+                        Kind="FileKey" />
                 </Button>
 
                 <!--  Settings button  -->
@@ -81,6 +81,7 @@
                     Margin="8,0,0,0"
                     Padding="8"
                     VerticalAlignment="Center"
+                    Command="{Binding ShowSettingsCommand}"
                     Foreground="{DynamicResource MaterialDarkForegroundBrush}"
                     Theme="{DynamicResource MaterialFlatButton}"
                     ToolTip.Tip="Settings">
@@ -94,7 +95,10 @@
             <!--  Progress  -->
             <ProgressBar
                 Height="2"
-                Background="Transparent" />
+                Background="Transparent"
+                IsIndeterminate="{Binding IsProgressIndeterminate}"
+                Value="{Binding Progress.Current.Fraction,
+                                Mode=OneWay}" />
         </StackPanel>
 
         <!--  Body  -->
@@ -105,6 +109,7 @@
             <StackPanel
                 Margin="8,32,8,8"
                 HorizontalAlignment="Center"
+                IsVisible="{Binding !Downloads.Count}"
                 Orientation="Vertical">
                 <LucideIcon
                     Width="256"
@@ -140,18 +145,28 @@
 
             <!--  Downloads  -->
             <DataGrid
+                Margin="5"
                 ColumnWidth="Auto"
                 HorizontalScrollBarVisibility="Disabled"
+                IsVisible="{Binding !!Downloads.Count}"
+                ItemsSource="{Binding Downloads}"
                 VerticalScrollBarVisibility="Visible">
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <!--  <MenuItem Command="{Binding RemoveSuccessfulDownloadsCommand}"  -->
-                        <!--  Header="Remove successful downloads" />  -->
-                        <!-- <MenuItem Command="{Binding RemoveInactiveDownloadsCommand}" Header="Remove inactive downloads" /> -->
-                        <!-- <Separator /> -->
-                        <!-- <MenuItem Command="{Binding RestartFailedDownloadsCommand}" Header="Restart failed downloads" /> -->
-                        <!-- <Separator /> -->
-                        <!-- <MenuItem Command="{Binding CancelAllDownloadsCommand}" Header="Cancel all downloads" /> -->
+                        <MenuItem
+                            Command="{Binding RemoveSuccessfulDownloadsCommand}"
+                            Header="Remove successful downloads" />
+                        <MenuItem
+                            Command="{Binding RemoveInactiveDownloadsCommand}"
+                            Header="Remove inactive downloads" />
+                        <Separator />
+                        <MenuItem
+                            Command="{Binding RestartFailedDownloadsCommand}"
+                            Header="Restart failed downloads" />
+                        <Separator />
+                        <MenuItem
+                            Command="{Binding CancelAllDownloadsCommand}"
+                            Header="Cancel all downloads" />
                     </ContextMenu>
                 </DataGrid.ContextMenu>
                 <DataGrid.Columns>
@@ -161,7 +176,9 @@
                             <DataTemplate>
                                 <Image
                                     Width="48"
-                                    Height="48" />
+                                    Height="48"
+                                    asyncImageLoader:ImageLoader.Source="{Binding Video,
+                                                                                  Converter={x:Static yd:VideoToLowestQualityThumbnailUrlStringConverter.Instance}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -175,8 +192,9 @@
                             <DataTemplate>
                                 <TextBlock
                                     FontSize="14"
-                                    Foreground="{DynamicResource MaterialBodyBrush}"
-                                    TextTrimming="CharacterEllipsis" />
+                                    Text="{Binding FileName}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTip.Tip="{Binding FileName}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -192,12 +210,34 @@
                                     <!--  Progress  -->
                                     <ProgressBar
                                         Grid.Column="0"
-                                        Margin="0,0,6,0" />
+                                        Margin="0,0,6,0"
+                                        IsIndeterminate="{Binding IsProgressIndeterminate}"
+                                        IsVisible="{Binding Status,
+                                                            Converter={x:Static yd:EqualityConverter.Equality},
+                                                            ConverterParameter={x:Static yd:DownloadStatus.Started}}"
+                                        Theme="{DynamicResource MaterialCircularProgressBar}"
+                                        Value="{Binding Progress.Current.Fraction,
+                                                        Mode=OneWay}" />
 
                                     <!--  Status  -->
                                     <TextBlock
                                         x:Name="StatusTextBlock"
                                         Grid.Column="1"
+                                        Classes.canceled="{Binding Status,
+                                                                   Converter={x:Static yd:EqualityConverter.Equality},
+                                                                   ConverterParameter={x:Static yd:DownloadStatus.Canceled}}"
+                                        Classes.completed="{Binding Status,
+                                                                    Converter={x:Static yd:EqualityConverter.Equality},
+                                                                    ConverterParameter={x:Static yd:DownloadStatus.Completed}}"
+                                        Classes.enqueued="{Binding Status,
+                                                                   Converter={x:Static yd:EqualityConverter.Equality},
+                                                                   ConverterParameter={x:Static yd:DownloadStatus.Enqueued}}"
+                                        Classes.failed="{Binding Status,
+                                                                 Converter={x:Static yd:EqualityConverter.Equality},
+                                                                 ConverterParameter={x:Static yd:DownloadStatus.Failed}}"
+                                        Classes.started="{Binding Status,
+                                                                  Converter={x:Static yd:EqualityConverter.Equality},
+                                                                  ConverterParameter={x:Static yd:DownloadStatus.Started}}"
                                         TextTrimming="CharacterEllipsis">
                                         <TextBlock.Resources>
                                             <ResourceDictionary>
@@ -234,7 +274,7 @@
                                                     <Setter Property="Text" Value="Pending..." />
                                                 </Style>
                                                 <Style Selector="^.started">
-                                                    <Setter Property="Text" />
+                                                    <Setter Property="Text" Value="{Binding Progress.Current}" />
                                                 </Style>
                                                 <Style Selector="^.completed">
                                                     <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
@@ -255,7 +295,7 @@
                                                                     Text="Note: Click to copy this error message" />
                                                                 <LineBreak />
                                                                 <LineBreak />
-                                                                <Run />
+                                                                <Run Text="{Binding ErrorMessage}" />
                                                             </TextBlock>
                                                         </Template>
                                                     </Setter>
@@ -280,52 +320,57 @@
                                     <Button
                                         Padding="4"
                                         VerticalAlignment="Center"
+                                        Command="{Binding ShowFileCommand}"
                                         IsVisible="{Binding $self.IsEffectivelyEnabled}"
                                         Theme="{DynamicResource MaterialFlatButton}"
                                         ToolTip.Tip="Show file">
                                         <LucideIcon
                                             Width="24"
                                             Height="24"
-                                            Kind="FileOutput" />
+                                            Kind="BookOpen" />
                                     </Button>
 
                                     <!--  Open file  -->
                                     <Button
                                         Padding="4"
                                         VerticalAlignment="Center"
+                                        Command="{Binding OpenFileCommand}"
                                         IsVisible="{Binding $self.IsEffectivelyEnabled}"
                                         Theme="{DynamicResource MaterialFlatButton}"
                                         ToolTip.Tip="Play">
                                         <LucideIcon
                                             Width="24"
                                             Height="24"
-                                            Kind="CirclePlay" />
+                                            Kind="Play" />
                                     </Button>
 
                                     <!--  Cancel download  -->
                                     <Button
                                         Padding="4"
                                         VerticalAlignment="Center"
+                                        Command="{Binding CancelCommand}"
                                         IsVisible="{Binding $self.IsEffectivelyEnabled}"
                                         Theme="{DynamicResource MaterialFlatButton}"
                                         ToolTip.Tip="Cancel download">
                                         <LucideIcon
                                             Width="24"
                                             Height="24"
-                                            Kind="CircleX" />
+                                            Kind="DoorClosed" />
                                     </Button>
 
                                     <!--  Restart download  -->
                                     <Button
                                         Padding="4"
                                         VerticalAlignment="Center"
+                                        Command="{Binding $parent[UserControl].((yd:DashboardPageViewModel)DataContext).RestartDownloadCommand}"
                                         CommandParameter="{Binding}"
+                                        IsVisible="{Binding IsCanceledOrFailed}"
                                         Theme="{DynamicResource MaterialFlatButton}"
                                         ToolTip.Tip="Restart download">
                                         <LucideIcon
                                             Width="24"
                                             Height="24"
-                                            Kind="RotateCcw" />
+                                            Kind="CircleArrowRight" />
                                     </Button>
                                 </StackPanel>
                             </DataTemplate>

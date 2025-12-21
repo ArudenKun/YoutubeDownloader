@@ -53,4 +53,10 @@ public sealed partial class MainWindowViewModel
         ContentViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
         return Task.CompletedTask;
     }
+
+    #region Update
+
+    private void Update() { }
+
+    #endregion
 }

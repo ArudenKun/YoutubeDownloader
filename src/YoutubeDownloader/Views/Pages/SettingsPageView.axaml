@@ -9,18 +9,107 @@
     d:DesignWidth="800"
     x:DataType="yd:SettingsPageViewModel"
     mc:Ignorable="d">
-    <Grid RowDefinitions="Auto, Auto, *">
-        <TextBox
+    <UserControl.Resources>
+        <yd:EnumToEnumerableConverter x:Key="EnumToEnumerableConverter" />
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.SettingsRowHeader">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+        <Style Selector="StackPanel.SettingsRow">
+            <Setter Property="Margin" Value="0, 12, 24,0" />
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Spacing" Value="6" />
+        </Style>
+        <Style Selector="TabControl">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border
+                        HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                        VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <DockPanel>
+                            <LayoutTransformControl
+                                Name="PART_LayoutTransform"
+                                DockPanel.Dock="{TemplateBinding TabStripPlacement}">
+                                <ItemsPresenter
+                                    Name="PART_ItemsPresenter"
+                                    ItemsPanel="{TemplateBinding ItemsPanel}" />
+                            </LayoutTransformControl>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ContentPresenter
+                                    Name="PART_SelectedContentHost"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding SelectedContent}"
+                                    ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
+    <Grid
+        Margin="24,24,0,24"
+        RowDefinitions="Auto, *"
+        RowSpacing="12">
+        <TextBlock
             Grid.Row="0"
-            Text="{Binding Search}" />
-        <Button
-            Grid.Row="1"
-            Command="{Binding ProcessSearchCommand}"
-            Content="Play" />
-        <yd:NativeWebView
-            Name="WebView"
-            Grid.Row="2"
-            Source="{Binding Url}"
-            UserDataFolder="{Binding UserDataFolder}" />
+            FontSize="26"
+            Text="{Binding DisplayName}" />
+        <TabControl Grid.Row="1">
+            <TabItem Header="General">
+                <StackPanel Classes="SettingsRow">
+                    <yd:SettingsRow
+                        Header="LogLevel"
+                        IconKind="Logs">
+                        <ComboBox
+                            ItemsSource="{Binding SettingsService.Logging.LogEventLevel,
+                                                  Converter={StaticResource EnumToEnumerableConverter},
+                                                  Mode=OneTime}"
+                            PlaceholderText="LogLevel"
+                            SelectedItem="{Binding SettingsService.Logging.LogEventLevel}" />
+                    </yd:SettingsRow>
+                    <TextBlock
+                        Classes="SettingsRowHeader"
+                        Text="Updates" />
+                    <yd:SettingsRow
+                        Header="Check"
+                        IconKind="CircleArrowUp">
+                        <TextBox Watermark="Test" />
+                    </yd:SettingsRow>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Appearance">
+                <StackPanel Classes="SettingsRow">
+                    <yd:SettingsRow
+                        Description="The theme to use"
+                        Header="Theme"
+                        IconKind="SunMoon">
+                        <ComboBox
+                            ItemsSource="{Binding SettingsService.Appearance.Theme,
+                                                  Converter={StaticResource EnumToEnumerableConverter},
+                                                  Mode=OneTime}"
+                            PlaceholderText="Theme"
+                            SelectedItem="{Binding SettingsService.Appearance.Theme}" />
+                    </yd:SettingsRow>
+                    <yd:SettingsRow
+                        Description="Test Description"
+                        Header="Theme Color"
+                        IconKind="Palette">
+                        <ComboBox
+                            ItemsSource="{Binding ColorThemes}"
+                            SelectedItem="{Binding SettingsService.Appearance.ThemeColor}" />
+                    </yd:SettingsRow>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

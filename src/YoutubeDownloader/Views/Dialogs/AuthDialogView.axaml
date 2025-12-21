@@ -15,7 +15,7 @@
             <!--  ReSharper disable once Xaml.StyleClassNotFound  -->
             <Button
                 Classes="Flat"
-                Command="{Binding CloseDialogCommand}"
+                Command="{Binding CloseCommand}"
                 Content="Close"
                 IsCancel="True" />
             <Button

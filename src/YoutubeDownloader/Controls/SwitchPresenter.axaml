@@ -1,0 +1,26 @@
+﻿<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:yd="https://github.com/arudenkun/YoutubeDownloader">
+    <Design.PreviewWith>
+        <Panel Background="White">
+            <yd:SwitchPresenter
+                Margin="24"
+                TargetType="x:Int32"
+                Value="2">
+                <yd:SwitchCase Value="1">1</yd:SwitchCase>
+                <yd:SwitchCase Value="2">222</yd:SwitchCase>
+                <yd:SwitchCase Value="3">3</yd:SwitchCase>
+            </yd:SwitchPresenter>
+        </Panel>
+    </Design.PreviewWith>
+    <ControlTheme
+        x:Key="{x:Type yd:SwitchPresenter}"
+        TargetType="yd:SwitchPresenter">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter Content="{TemplateBinding Content}" />
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

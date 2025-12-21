@@ -2,7 +2,14 @@
 using R3.ObservableEvents;
 
 [assembly: GenerateStaticEventObservables(typeof(TaskScheduler))]
-
+[assembly: XmlnsDefinition(
+    "https://github.com/arudenkun/YoutubeDownloader",
+    "YoutubeDownloader.Converters"
+)]
+[assembly: XmlnsDefinition(
+    "https://github.com/arudenkun/YoutubeDownloader",
+    "YoutubeDownloader.Models"
+)]
 [assembly: XmlnsDefinition(
     "https://github.com/arudenkun/YoutubeDownloader",
     "YoutubeDownloader.ViewModels"
@@ -30,10 +37,6 @@ using R3.ObservableEvents;
 [assembly: XmlnsDefinition(
     "https://github.com/arudenkun/YoutubeDownloader",
     "YoutubeDownloader.Controls"
-)]
-[assembly: XmlnsDefinition(
-    "https://github.com/arudenkun/YoutubeDownloader",
-    "YoutubeDownloader.Controls.Media"
 )]
 [assembly: XmlnsDefinition(
     "https://github.com/arudenkun/YoutubeDownloader",

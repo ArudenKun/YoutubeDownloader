@@ -1,33 +1,29 @@
-﻿using System.Net;
-using System.Text.Json.Serialization;
-using AutoInterfaceAttributes;
+﻿using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Humanizer;
-using R3;
 using Volo.Abp.DependencyInjection;
-using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Options;
 using YoutubeDownloader.Utilities;
 
 namespace YoutubeDownloader.Services;
 
-[AutoInterface(Inheritance = [typeof(IDisposable)])]
-[INotifyPropertyChanged]
-public sealed partial class SettingsService : JsonFileBase, ISettingsService, ISingletonDependency
+[ObservableObject]
+public sealed partial class SettingsService : JsonFileBase, ISingletonDependency
 {
-    private readonly CompositeDisposable _disposables = new();
+    public event Action<bool>? Loaded;
+    public event Action? Saved;
 
     public SettingsService()
-        : base(AppHelper.SettingsPath, SettingServiceJsonSerializerContext.Default)
-    {
-        this.WatchAllProperties().Debounce(1.Seconds()).Subscribe(_ => Save()).AddTo(_disposables);
-    }
+        : base(AppHelper.SettingsPath, SettingServiceJsonSerializerContext.Default) { }
+
+    [JsonIgnore]
+    [ObservableProperty]
+    public partial GeneralOptions General { get; set; } = new();
 
     [ObservableProperty]
-    public partial bool AutoUpdate { get; set; }
+    public partial YoutubeOptions Youtube { get; set; } = new();
 
     [ObservableProperty]
-    public partial IReadOnlyList<Cookie> LastAuthCookies { get; set; } = [];
+    public partial AppearanceOptions Appearance { get; set; } = new();
 
     [ObservableProperty]
     public partial LoggingOptions Logging { get; set; } = new();
@@ -42,16 +38,17 @@ public sealed partial class SettingsService : JsonFileBase, ISettingsService, IS
     public override void Save()
     {
         base.Save();
+        Saved?.Invoke();
     }
 
     public override bool Load()
     {
-        return base.Load();
+        var result = base.Load();
+        Loaded?.Invoke(result);
+        return result;
     }
 
     // ReSharper restore RedundantOverriddenMember
-
-    public void Dispose() => _disposables.Dispose();
 
     [JsonSerializable(typeof(SettingsService))]
     private sealed partial class SettingServiceJsonSerializerContext : JsonSerializerContext;

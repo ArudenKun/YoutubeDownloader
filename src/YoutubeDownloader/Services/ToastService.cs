@@ -1,6 +1,5 @@
 ﻿using AutoInterfaceAttributes;
 using Avalonia.Controls.Notifications;
-using Humanizer;
 using JetBrains.Annotations;
 using SukiUI.Toasts;
 using Volo.Abp.DependencyInjection;
@@ -13,9 +12,9 @@ namespace YoutubeDownloader.Services;
 public sealed class ToastService : IToastService, ISingletonDependency
 {
     private readonly ISukiToastManager _manager;
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsService _settingsService;
 
-    public ToastService(ISukiToastManager manager, ISettingsService settingsService)
+    public ToastService(ISukiToastManager manager, SettingsService settingsService)
     {
         _manager = manager;
         _settingsService = settingsService;
@@ -41,8 +40,7 @@ public sealed class ToastService : IToastService, ISingletonDependency
         if (autoDismiss)
         {
             toast.SetCanDismissByClicking(true);
-            toast.SetDismissAfter(3.Seconds());
-            // toast.SetDismissAfter(_settingsService.Appearance.ToastDuration);
+            toast.SetDismissAfter(_settingsService.Appearance.ToastDuration);
         }
 
         if (!string.IsNullOrWhiteSpace(title))

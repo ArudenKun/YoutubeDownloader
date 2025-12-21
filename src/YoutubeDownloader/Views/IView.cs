@@ -2,7 +2,9 @@
 
 namespace YoutubeDownloader.Views;
 
-public interface IView<TViewModel> : IDisposable
+public interface IView : IDisposable;
+
+public interface IView<TViewModel> : IView
     where TViewModel : ViewModel
 {
     TViewModel ViewModel { get; }

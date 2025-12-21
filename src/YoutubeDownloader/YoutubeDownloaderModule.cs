@@ -38,15 +38,16 @@ public sealed class YoutubeDownloaderModule : AbpModule
         context.Services.AddTransient<IStorageProvider>(sp =>
             sp.GetRequiredService<TopLevel>().StorageProvider
         );
+        context.Services.AddTransient<ILauncher>(sp => sp.GetRequiredService<TopLevel>().Launcher);
     }
 
     public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
-        context.ServiceProvider.GetRequiredService<ISettingsService>().Load();
+        context.ServiceProvider.GetRequiredService<SettingsService>().Load();
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)
     {
-        context.ServiceProvider.GetRequiredService<ISettingsService>().Save();
+        context.ServiceProvider.GetRequiredService<SettingsService>().Save();
     }
 }

@@ -30,16 +30,16 @@
                             Kind="{Binding IconKind}" />
                     </suki:SukiSideMenuItem.Icon>
                 </suki:SukiSideMenuItem>
+                <!--  ReSharper disable once Xaml.StyleClassNotFound  -->
             </DataTemplate>
         </suki:SukiSideMenu.ItemTemplate>
         <suki:SukiSideMenu.HeaderContent>
-            <!--  ReSharper disable once Xaml.StyleClassNotFound  -->
             <Image
                 Width="80"
                 Height="80"
                 Margin="30,20,30,30"
                 Classes="AppIcon"
-                Source="/Assets/avalonia-logo.ico" />
+                Source="/Assets/favicon.png" />
         </suki:SukiSideMenu.HeaderContent>
     </suki:SukiSideMenu>
 </UserControl>

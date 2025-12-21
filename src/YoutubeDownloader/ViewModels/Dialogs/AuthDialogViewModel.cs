@@ -1,5 +1,4 @@
-﻿using System.IO;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Volo.Abp.DependencyInjection;
 using YoutubeDownloader.Utilities;
@@ -20,11 +19,11 @@ public sealed partial class AuthDialogViewModel : DialogViewModel, ITransientDep
     public override void OnLoaded()
     {
         IsAuthenticated =
-            SettingsService.LastAuthCookies.Any()
+            SettingsService.Youtube.LastAuthCookies.Any()
             &&
             // None of the '__SECURE' cookies should be expired
             SettingsService
-                .LastAuthCookies.Where(c =>
+                .Youtube.LastAuthCookies.Where(c =>
                     c.Name.StartsWith("__SECURE", StringComparison.OrdinalIgnoreCase)
                 )
                 .All(c => !c.Expired && c.Expires.ToUniversalTime() > DateTime.UtcNow);
@@ -36,7 +35,7 @@ public sealed partial class AuthDialogViewModel : DialogViewModel, ITransientDep
         if (string.IsNullOrWhiteSpace(CookiesOrCookiePath))
             return;
 
-        SettingsService.LastAuthCookies = File.Exists(CookiesOrCookiePath)
+        SettingsService.Youtube.LastAuthCookies = File.Exists(CookiesOrCookiePath)
             ? NetscapeCookieParser
                 .ParseFile(CookiesOrCookiePath)
                 .AsValueEnumerable()
@@ -48,6 +47,6 @@ public sealed partial class AuthDialogViewModel : DialogViewModel, ITransientDep
                 .Select(c => c)
                 .ToArray();
 
-        CloseDialog();
+        Close(true);
     }
 }

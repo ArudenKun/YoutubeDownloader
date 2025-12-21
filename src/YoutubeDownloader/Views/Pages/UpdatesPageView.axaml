@@ -1,0 +1,13 @@
+﻿<UserControl
+    x:Class="YoutubeDownloader.Views.Pages.UpdatesPageView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:yd="https://github.com/arudenkun/YoutubeDownloader"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="yd:UpdatesPageViewModel"
+    mc:Ignorable="d">
+    Welcome to Updates!
+</UserControl>

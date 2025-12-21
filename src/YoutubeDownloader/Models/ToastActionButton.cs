@@ -6,10 +6,10 @@ namespace YoutubeDownloader.Models;
 
 public class ToastActionButton
 {
-    public required object ButtonContent { get; set; }
-    public Action<ISukiToast> OnClicked { get; set; } = _ => { };
-    public bool DismissOnClick { get; set; }
-    public SukiButtonStyles Styles { get; set; } = SukiButtonStyles.Flat;
+    public required object ButtonContent { get; init; }
+    public Action<ISukiToast> OnClicked { get; init; } = _ => { };
+    public bool DismissOnClick { get; init; }
+    public SukiButtonStyles Styles { get; init; } = SukiButtonStyles.Flat;
 
     public ToastActionButton() { }
 

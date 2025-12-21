@@ -4,14 +4,13 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Velopack;
 using YoutubeDownloader.Extensions;
 using YoutubeDownloader.Hosting;
 using YoutubeDownloader.Options;
+using YoutubeDownloader.Services;
 using YoutubeDownloader.Utilities;
 
 namespace YoutubeDownloader;
@@ -75,15 +74,16 @@ public static class Program
     private static IHostBuilder ConfigureLogging(this IHostBuilder hostBuilder) =>
         hostBuilder
             .ConfigureServices(services =>
-                services.AddSingleton(sp => new LoggingLevelSwitch(
-                    sp.GetRequiredService<IOptionsSnapshot<LoggingOptions>>().Value.LogEventLevel
+                services.AddSingleton(sp => new ObservableLoggingLevelSwitch(
+                    sp.GetRequiredService<SettingsService>()
                 ))
             )
             .UseSerilog(
                 (_, sp, loggingConfiguration) =>
-                {
                     loggingConfiguration
-                        .MinimumLevel.ControlledBy(sp.GetRequiredService<LoggingLevelSwitch>())
+                        .MinimumLevel.ControlledBy(
+                            sp.GetRequiredService<ObservableLoggingLevelSwitch>()
+                        )
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                         .MinimumLevel.Override(
                             "Microsoft.EntityFrameworkCore",
@@ -95,13 +95,12 @@ public static class Program
                             c.File(
                                 AppHelper.LogsDir.CombinePath("log.txt"),
                                 outputTemplate: LoggingOptions.Template,
-                                fileSizeLimitBytes: sp.GetRequiredService<
-                                    IOptionsSnapshot<LoggingOptions>
-                                >().Value.Size == 0
+                                fileSizeLimitBytes: sp.GetRequiredService<SettingsService>().Logging.Size
+                                == 0
                                     ? null
                                     : (long)
-                                        sp.GetRequiredService<IOptionsSnapshot<LoggingOptions>>()
-                                            .Value.Size.Megabytes()
+                                        sp.GetRequiredService<SettingsService>()
+                                            .Logging.Size.Megabytes()
                                             .Bytes,
                                 retainedFileTimeLimit: 30.Days(),
                                 rollingInterval: RollingInterval.Day,
@@ -109,8 +108,7 @@ public static class Program
                                 shared: true
                             )
                         )
-                        .WriteTo.Async(c => c.Console(outputTemplate: LoggingOptions.Template));
-                }
+                        .WriteTo.Async(c => c.Console(outputTemplate: LoggingOptions.Template))
             );
 
     /// <summary>
